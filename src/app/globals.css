@@ -1,0 +1,209 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', system-ui, sans-serif;
+    --radius: 0.75rem;
+
+    /* Base colors - Light mode */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    /* Card */
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    /* Primary - スポーツ系グリーン */
+    --primary: 142 71% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    /* Muted */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    /* Accent */
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    /* Border & Input */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 142 71% 45%;
+
+    /* Destructive */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Sports specific colors */
+    --live: 0 84% 60%;
+    --win: 142 71% 45%;
+    --draw: 45 93% 47%;
+    --loss: 0 84% 60%;
+    --champions: 217 91% 60%;
+    --europa: 25 95% 53%;
+    --relegation: 0 84% 60%;
+  }
+
+  .dark {
+    /* Base colors - Dark mode */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    /* Card - ガラスモーフィズム用 */
+    --card: 222.2 84% 6%;
+    --card-foreground: 210 40% 98%;
+
+    /* Primary */
+    --primary: 142 71% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary */
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    /* Muted */
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    /* Accent */
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    /* Border & Input */
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 142 71% 45%;
+
+    /* Destructive */
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Sports specific colors - Dark mode */
+    --live: 0 84% 65%;
+    --win: 142 71% 50%;
+    --draw: 45 93% 55%;
+    --loss: 0 84% 65%;
+    --champions: 217 91% 65%;
+    --europa: 25 95% 60%;
+    --relegation: 0 84% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-inter);
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/50;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Glass morphism */
+  .glass {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+  }
+
+  .glass-strong {
+    @apply bg-card/90 backdrop-blur-2xl border border-border/70;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-sport;
+  }
+
+  /* Sports badge pulse */
+  .live-pulse {
+    @apply relative;
+  }
+
+  .live-pulse::before {
+    content: '';
+    @apply absolute inset-0 rounded-full bg-live/30 animate-pulse-live;
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5;
+  }
+
+  /* Table row highlight */
+  .table-row-champions {
+    @apply bg-champions/10 dark:bg-champions/20;
+  }
+
+  .table-row-europa {
+    @apply bg-europa/10 dark:bg-europa/20;
+  }
+
+  .table-row-relegation {
+    @apply bg-relegation/10 dark:bg-relegation/20;
+  }
+
+  /* Sidebar */
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground;
+  }
+
+  .sidebar-item-active {
+    @apply bg-primary/10 text-primary hover:bg-primary/20;
+  }
+
+  /* Score display */
+  .score-display {
+    @apply font-bold tabular-nums;
+  }
+
+  /* Form indicator (W/D/L) */
+  .form-indicator {
+    @apply w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white;
+  }
+
+  .form-win {
+    @apply bg-win;
+  }
+
+  .form-draw {
+    @apply bg-draw text-foreground;
+  }
+
+  .form-loss {
+    @apply bg-loss;
+  }
+}
