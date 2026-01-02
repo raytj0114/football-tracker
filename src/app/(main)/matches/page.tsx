@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata: Metadata = {
-  title: '試合一覧 | Football Tracker',
+  title: '試合一覧 | Football Tracker (ベータ版)',
   description: 'サッカーの試合情報を確認できます',
 };
 

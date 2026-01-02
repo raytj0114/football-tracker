@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const metadata: Metadata = {
-  title: 'ログイン | Football Tracker',
+  title: 'ログイン | Football Tracker (ベータ版)',
   description: 'アカウントにログインしてお気に入り機能を利用しましょう',
 };
 
@@ -48,7 +48,9 @@ export default async function LoginPage({ searchParams }: Props) {
             <Star className="h-8 w-8 text-primary-foreground" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">Football Tracker</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              Football Tracker <span className="text-base text-muted-foreground">β</span>
+            </CardTitle>
             <p className="mt-2 text-sm text-muted-foreground">
               ログインしてお気に入りチームを登録しましょう
             </p>

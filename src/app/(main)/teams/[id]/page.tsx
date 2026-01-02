@@ -18,17 +18,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const teamId = parseInt(id, 10);
 
   if (isNaN(teamId)) {
-    return { title: 'チーム詳細 | Football Tracker' };
+    return { title: 'チーム詳細 | Football Tracker (ベータ版)' };
   }
 
   try {
     const team = await footballAPI.getTeam(teamId);
     return {
-      title: `${team.name} | Football Tracker`,
+      title: `${team.name} | Football Tracker (ベータ版)`,
       description: `${team.name}の詳細情報、選手一覧を確認できます`,
     };
   } catch {
-    return { title: 'チーム詳細 | Football Tracker' };
+    return { title: 'チーム詳細 | Football Tracker (ベータ版)' };
   }
 }
 

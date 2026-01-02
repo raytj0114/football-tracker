@@ -14,7 +14,7 @@ export function Footer() {
               Football-Data.org
             </a>
           </p>
-          <p>&copy; {new Date().getFullYear()} Football Tracker</p>
+          <p>&copy; {new Date().getFullYear()} Football Tracker (ベータ版)</p>
         </div>
       </div>
     </footer>

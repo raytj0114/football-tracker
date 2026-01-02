@@ -13,7 +13,12 @@ export default function HomePage() {
       <div className="mb-12">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-background p-8 md:p-12">
           <div className="relative z-10">
-            <h1 className="mb-4 text-3xl font-bold md:text-4xl lg:text-5xl">Football Tracker</h1>
+            <h1 className="mb-4 text-3xl font-bold md:text-4xl lg:text-5xl">
+              Football Tracker{' '}
+              <span className="text-xl md:text-2xl lg:text-3xl text-muted-foreground">
+                ベータ版
+              </span>
+            </h1>
             <p className="mb-8 max-w-2xl text-lg text-muted-foreground">
               世界のサッカーリーグの試合結果、順位表、チーム情報をリアルタイムで確認できます
             </p>

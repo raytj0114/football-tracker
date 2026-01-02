@@ -1,4 +1,4 @@
-# Football Tracker 仕様書
+# Football Tracker (ベータ版) 仕様書
 
 ## 概要
 

@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 export const metadata: Metadata = {
-  title: '順位表 | Football Tracker',
+  title: '順位表 | Football Tracker (ベータ版)',
   description: 'サッカーリーグの順位表を確認できます',
 };
 

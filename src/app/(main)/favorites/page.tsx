@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
-  title: 'お気に入り | Football Tracker',
+  title: 'お気に入り | Football Tracker (ベータ版)',
   description: 'お気に入りチームの一覧と試合情報',
 };
 
