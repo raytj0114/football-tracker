@@ -4,12 +4,13 @@ import Image from 'next/image';
 import { Calendar } from 'lucide-react';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
-import { footballAPI } from '@/lib/football-api/client';
+import { footballAPI, FootballAPIError } from '@/lib/football-api/client';
 import { DEFAULT_LEAGUE, AVAILABLE_LEAGUES } from '@/lib/football-api/constants';
 import { MatchListWithFilters } from '@/components/features/matches/match-list-with-filters';
 import { LeagueSelector } from '@/components/features/matches/league-selector';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
+import { RateLimitError } from '@/components/ui/rate-limit-error';
 
 export const metadata: Metadata = {
   title: '試合一覧 | Football Tracker (ベータ版)',
@@ -31,57 +32,64 @@ function MatchListSkeleton() {
 }
 
 async function MatchListWrapper({ league }: { league: string }) {
-  const [matchesData, standingsData, session] = await Promise.all([
-    footballAPI.getMatches(league),
-    footballAPI.getStandings(league),
-    auth(),
-  ]);
-  const leagueInfo = AVAILABLE_LEAGUES.find((l) => l.code === league);
-  const currentMatchday = standingsData.season.currentMatchday;
+  try {
+    const [matchesData, standingsData, session] = await Promise.all([
+      footballAPI.getMatches(league),
+      footballAPI.getStandings(league),
+      auth(),
+    ]);
+    const leagueInfo = AVAILABLE_LEAGUES.find((l) => l.code === league);
+    const currentMatchday = standingsData.season.currentMatchday;
 
-  // Fetch favorite team IDs if user is logged in
-  let favoriteTeamIds: number[] = [];
-  if (session?.user?.id) {
-    const favorites = await prisma.favoriteTeam.findMany({
-      where: { userId: session.user.id },
-      select: { teamId: true },
-    });
-    favoriteTeamIds = favorites.map((f) => f.teamId);
-  }
+    // Fetch favorite team IDs if user is logged in
+    let favoriteTeamIds: number[] = [];
+    if (session?.user?.id) {
+      const favorites = await prisma.favoriteTeam.findMany({
+        where: { userId: session.user.id },
+        select: { teamId: true },
+      });
+      favoriteTeamIds = favorites.map((f) => f.teamId);
+    }
 
-  return (
-    <div className="space-y-6">
-      {/* League Info Header */}
-      <Card className="bg-gradient-to-br from-primary/5 to-transparent">
-        <CardContent className="flex items-center gap-4 p-6">
-          {leagueInfo && (
-            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
-              <Image
-                src={leagueInfo.emblem}
-                alt={leagueInfo.name}
-                width={56}
-                height={56}
-                className="h-14 w-14 object-contain"
-              />
-            </div>
-          )}
-          <div>
-            <h2 className="text-xl font-semibold">{matchesData.competition.name}</h2>
-            {currentMatchday && (
-              <p className="text-sm text-muted-foreground">現在: 第{currentMatchday}節</p>
+    return (
+      <div className="space-y-6">
+        {/* League Info Header */}
+        <Card className="bg-gradient-to-br from-primary/5 to-transparent">
+          <CardContent className="flex items-center gap-4 p-6">
+            {leagueInfo && (
+              <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
+                <Image
+                  src={leagueInfo.emblem}
+                  alt={leagueInfo.name}
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 object-contain"
+                />
+              </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
+            <div>
+              <h2 className="text-xl font-semibold">{matchesData.competition.name}</h2>
+              {currentMatchday && (
+                <p className="text-sm text-muted-foreground">現在: 第{currentMatchday}節</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-      <MatchListWithFilters
-        matches={matchesData.matches}
-        favoriteTeamIds={favoriteTeamIds}
-        currentMatchday={currentMatchday}
-        leagueCode={league}
-      />
-    </div>
-  );
+        <MatchListWithFilters
+          matches={matchesData.matches}
+          favoriteTeamIds={favoriteTeamIds}
+          currentMatchday={currentMatchday}
+          leagueCode={league}
+        />
+      </div>
+    );
+  } catch (error) {
+    if (error instanceof FootballAPIError && error.status === 429) {
+      return <RateLimitError returnPath={`/matches?league=${league}`} />;
+    }
+    throw error;
+  }
 }
 
 export default async function MatchesPage({ searchParams }: Props) {

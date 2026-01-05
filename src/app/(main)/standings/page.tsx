@@ -2,13 +2,14 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Trophy } from 'lucide-react';
-import { footballAPI } from '@/lib/football-api/client';
+import { footballAPI, FootballAPIError } from '@/lib/football-api/client';
 import { DEFAULT_LEAGUE, type LeagueCode } from '@/lib/football-api/constants';
 import { StandingsTable } from '@/components/features/standings/standings-table';
 import { LeagueSelector } from '@/components/features/matches/league-selector';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { RateLimitError } from '@/components/ui/rate-limit-error';
 
 export const metadata: Metadata = {
   title: '順位表 | Football Tracker (ベータ版)',
@@ -32,52 +33,59 @@ function StandingsTableSkeleton() {
 }
 
 async function StandingsWrapper({ league }: { league: string }) {
-  const data = await footballAPI.getStandings(league);
-  const totalStandings = data.standings.find((s) => s.type === 'TOTAL');
+  try {
+    const data = await footballAPI.getStandings(league);
+    const totalStandings = data.standings.find((s) => s.type === 'TOTAL');
 
-  if (!totalStandings) {
+    if (!totalStandings) {
+      return (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Trophy className="mb-4 h-12 w-12 text-muted-foreground" />
+            <p className="text-muted-foreground">順位表データがありません</p>
+          </CardContent>
+        </Card>
+      );
+    }
+
     return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Trophy className="mb-4 h-12 w-12 text-muted-foreground" />
-          <p className="text-muted-foreground">順位表データがありません</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Competition Header */}
-      <Card className="bg-gradient-to-br from-primary/5 to-transparent">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-4">
-            {data.competition.emblem && (
-              <div className="relative h-16 w-16 rounded-lg bg-white p-2 shadow-sm">
-                <Image
-                  src={data.competition.emblem}
-                  alt={data.competition.name}
-                  fill
-                  className="object-contain p-1"
-                />
-              </div>
-            )}
-            <div>
-              <span className="text-xl">{data.competition.name}</span>
-              {data.season.currentMatchday && (
-                <Badge variant="secondary" className="mt-2 block w-fit">
-                  第{data.season.currentMatchday}節
-                </Badge>
+      <div className="space-y-6">
+        {/* Competition Header */}
+        <Card className="bg-gradient-to-br from-primary/5 to-transparent">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-4">
+              {data.competition.emblem && (
+                <div className="relative h-16 w-16 rounded-lg bg-white p-2 shadow-sm">
+                  <Image
+                    src={data.competition.emblem}
+                    alt={data.competition.name}
+                    fill
+                    className="object-contain p-1"
+                  />
+                </div>
               )}
-            </div>
-          </CardTitle>
-        </CardHeader>
-      </Card>
+              <div>
+                <span className="text-xl">{data.competition.name}</span>
+                {data.season.currentMatchday && (
+                  <Badge variant="secondary" className="mt-2 block w-fit">
+                    第{data.season.currentMatchday}節
+                  </Badge>
+                )}
+              </div>
+            </CardTitle>
+          </CardHeader>
+        </Card>
 
-      {/* Standings Table */}
-      <StandingsTable standings={totalStandings.table} leagueCode={league as LeagueCode} />
-    </div>
-  );
+        {/* Standings Table */}
+        <StandingsTable standings={totalStandings.table} leagueCode={league as LeagueCode} />
+      </div>
+    );
+  } catch (error) {
+    if (error instanceof FootballAPIError && error.status === 429) {
+      return <RateLimitError returnPath={`/standings?league=${league}`} />;
+    }
+    throw error;
+  }
 }
 
 export default async function StandingsPage({ searchParams }: Props) {

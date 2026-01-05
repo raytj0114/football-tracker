@@ -9,6 +9,7 @@ import { TeamHeader } from '@/components/features/teams/team-header';
 import { TeamSquad } from '@/components/features/teams/team-squad';
 import { FavoriteButton } from '@/components/features/favorites/favorite-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RateLimitError } from '@/components/ui/rate-limit-error';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -111,8 +112,13 @@ export default async function TeamPage({ params }: Props) {
       </div>
     );
   } catch (error) {
-    if (error instanceof FootballAPIError && error.status === 404) {
-      notFound();
+    if (error instanceof FootballAPIError) {
+      if (error.status === 404) {
+        notFound();
+      }
+      if (error.status === 429) {
+        return <RateLimitError returnPath={`/teams/${id}`} />;
+      }
     }
     throw error;
   }
