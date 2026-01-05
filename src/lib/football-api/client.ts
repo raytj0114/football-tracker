@@ -34,7 +34,7 @@ async function fetchAPI<T>(
 
   if (!res.ok) {
     const errorText = await res.text();
-    throw new FootballAPIError(res.status, `[${res.status}] ${errorText}`);
+    throw new FootballAPIError(res.status, errorText);
   }
 
   const data = await res.json();
