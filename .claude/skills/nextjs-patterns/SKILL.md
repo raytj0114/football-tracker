@@ -7,18 +7,18 @@ description: Next.js App Router開発のベストプラクティス。Server Com
 
 ## 概要
 
-Next.js 15+ App Routerでのモダンなフルスタック開発パターン。
+Next.js 16+ App Routerでのモダンなフルスタック開発パターン。
 
 ## ファイル規約
 
-| ファイル | 用途 |
-|----------|------|
-| `page.tsx` | ルートUI |
-| `layout.tsx` | 共有レイアウト |
-| `loading.tsx` | ローディングUI（Suspense） |
-| `error.tsx` | エラーUI（Error Boundary） |
-| `not-found.tsx` | 404ページ |
-| `route.ts` | API Route Handler |
+| ファイル        | 用途                       |
+| --------------- | -------------------------- |
+| `page.tsx`      | ルートUI                   |
+| `layout.tsx`    | 共有レイアウト             |
+| `loading.tsx`   | ローディングUI（Suspense） |
+| `error.tsx`     | エラーUI（Error Boundary） |
+| `not-found.tsx` | 404ページ                  |
+| `route.ts`      | API Route Handler          |
 
 ## データフェッチ
 

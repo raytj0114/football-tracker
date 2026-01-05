@@ -22,19 +22,21 @@ Next.js App Router を使用したフロントエンド実装を担当。
 ## 判断基準
 
 ### このエージェントを使う場面
+
 - ページやコンポーネントの実装
 - loading.tsx / error.tsx の作成
 - React Query フックの実装
 - Tailwind CSS でのスタイリング
 
 ### 使わない場面
+
 - 外部API連携の実装 → football-api-integrator
 - 認証・認可の実装 → auth-specialist
 - CI/CDの設定 → devops-engineer
 
 ## 技術スタック
 
-- Next.js 15+ (App Router)
+- Next.js 16+ (App Router)
 - React 19
 - TypeScript
 - Tailwind CSS
@@ -70,8 +72,8 @@ hooks/
 
 ## 状態管理の使い分け
 
-| 種類 | ツール | 用途 |
-|------|--------|------|
-| サーバー状態 | React Query | API データのキャッシュ |
-| クライアント状態 | Zustand | UIの状態（モーダル、フィルター等） |
-| フォーム状態 | React Hook Form | フォーム入力 |
+| 種類             | ツール          | 用途                               |
+| ---------------- | --------------- | ---------------------------------- |
+| サーバー状態     | React Query     | API データのキャッシュ             |
+| クライアント状態 | Zustand         | UIの状態（モーダル、フィルター等） |
+| フォーム状態     | React Hook Form | フォーム入力                       |
