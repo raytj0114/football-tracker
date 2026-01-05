@@ -20,7 +20,7 @@ async function fetchMatches(
 
   const res = await fetch(`/api/matches?${params.toString()}`);
   if (!res.ok) {
-    throw new Error('Failed to fetch matches');
+    throw new Error(`Failed to fetch matches (${res.status})`);
   }
   return res.json();
 }
@@ -28,7 +28,7 @@ async function fetchMatches(
 async function fetchStandings(league: string): Promise<StandingsResponse> {
   const res = await fetch(`/api/standings?league=${league}`);
   if (!res.ok) {
-    throw new Error('Failed to fetch standings');
+    throw new Error(`Failed to fetch standings (${res.status})`);
   }
   return res.json();
 }
@@ -36,7 +36,7 @@ async function fetchStandings(league: string): Promise<StandingsResponse> {
 async function fetchTeam(id: number): Promise<TeamDetail> {
   const res = await fetch(`/api/teams/${id}`);
   if (!res.ok) {
-    throw new Error('Failed to fetch team');
+    throw new Error(`Failed to fetch team (${res.status})`);
   }
   return res.json();
 }
