@@ -15,6 +15,7 @@ const eslintConfig = [
       '.next/**',
       '.claude/**',
       'node_modules/**',
+      'coverage/**',
       '*.config.js',
       '*.config.mjs',
     ],
