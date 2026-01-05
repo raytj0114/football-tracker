@@ -4,7 +4,7 @@ export const CompetitionSchema = z.object({
   id: z.number(),
   name: z.string(),
   code: z.string(),
-  type: z.enum(['LEAGUE', 'CUP']),
+  type: z.enum(['LEAGUE', 'CUP', 'SUPER_CUP', 'PLAYOFFS']),
   emblem: z.string().nullable(),
 });
 

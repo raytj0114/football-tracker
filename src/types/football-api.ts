@@ -2,7 +2,7 @@ export interface Competition {
   id: number;
   name: string;
   code: string;
-  type: 'LEAGUE' | 'CUP';
+  type: 'LEAGUE' | 'CUP' | 'SUPER_CUP' | 'PLAYOFFS';
   emblem: string | null;
 }
 

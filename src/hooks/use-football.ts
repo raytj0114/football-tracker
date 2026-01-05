@@ -45,8 +45,9 @@ export function useMatches(league: string, options?: FetchMatchesOptions) {
   return useQuery({
     queryKey: ['matches', league, options],
     queryFn: () => fetchMatches(league, options),
-    staleTime: 60_000,
-    refetchInterval: 60_000,
+    staleTime: 120_000, // 2分（サーバーTTLと同期）
+    gcTime: 300_000, // 5分でガベージコレクション
+    refetchOnWindowFocus: true, // タブ復帰時にリフレッシュ
   });
 }
 
@@ -54,7 +55,8 @@ export function useStandings(league: string) {
   return useQuery({
     queryKey: ['standings', league],
     queryFn: () => fetchStandings(league),
-    staleTime: 5 * 60_000,
+    staleTime: 10 * 60_000, // 10分（サーバーTTLと同期）
+    gcTime: 15 * 60_000, // 15分
   });
 }
 
@@ -62,7 +64,8 @@ export function useTeam(id: number) {
   return useQuery({
     queryKey: ['team', id],
     queryFn: () => fetchTeam(id),
-    staleTime: 30 * 60_000,
+    staleTime: 60 * 60_000, // 60分（サーバーTTLと同期）
+    gcTime: 120 * 60_000, // 2時間
     enabled: id > 0,
   });
 }

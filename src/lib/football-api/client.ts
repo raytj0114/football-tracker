@@ -64,12 +64,12 @@ export const footballAPI = {
     const query = params.toString();
     const endpoint = `/competitions/${code}/matches${query ? `?${query}` : ''}`;
 
-    return fetchAPI(endpoint, MatchesResponseSchema, { revalidate: 60 });
+    return fetchAPI(endpoint, MatchesResponseSchema, { revalidate: 120 });
   },
 
   async getStandings(code: string): Promise<StandingsResponse> {
     return fetchAPI(`/competitions/${code}/standings`, StandingsResponseSchema, {
-      revalidate: 300,
+      revalidate: 600,
     });
   },
 

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { Users } from 'lucide-react';
 import { footballAPI, FootballAPIError } from '@/lib/football-api/client';
+import { AVAILABLE_LEAGUES } from '@/lib/football-api/constants';
 import { isFavorite } from '@/app/actions/favorites';
 import { auth } from '@/auth';
 import { TeamHeader } from '@/components/features/teams/team-header';
@@ -12,6 +13,31 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 interface Props {
   params: Promise<{ id: string }>;
 }
+
+// 上位チームを事前生成（6リーグ × 上位6チーム = 最大36チーム）
+export async function generateStaticParams() {
+  const topTeams: { id: string }[] = [];
+  const domesticLeagues = AVAILABLE_LEAGUES.filter((l) => l.code !== 'CL');
+
+  for (const league of domesticLeagues) {
+    try {
+      const standings = await footballAPI.getStandings(league.code);
+      const totalStandings = standings.standings.find((s) => s.type === 'TOTAL');
+      const top6 = totalStandings?.table.slice(0, 6) ?? [];
+
+      top6.forEach((entry) => {
+        topTeams.push({ id: String(entry.team.id) });
+      });
+    } catch (error) {
+      console.error(`Failed to fetch standings for ${league.code}:`, error);
+    }
+  }
+
+  return topTeams;
+}
+
+// 事前生成されていないチームも動的に対応
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
