@@ -8,7 +8,14 @@ interface TeamSquadProps {
 
 // General position categories for grouping
 const positionCategories = ['Goalkeeper', 'Defence', 'Midfield', 'Offence'] as const;
-type PositionCategory = (typeof positionCategories)[number] | 'その他';
+type BasePositionCategory = (typeof positionCategories)[number];
+type PositionCategory = BasePositionCategory | 'その他';
+
+const ALL_POSITION_CATEGORIES: readonly PositionCategory[] = [...positionCategories, 'その他'];
+
+function isBasePositionCategory(value: string): value is BasePositionCategory {
+  return positionCategories.includes(value as BasePositionCategory);
+}
 
 const positionOrder: Record<string, number> = {
   Goalkeeper: 1,
@@ -75,8 +82,8 @@ function getPositionCategory(position: string | null): PositionCategory {
   }
 
   // General categories from API
-  if (positionCategories.includes(position as (typeof positionCategories)[number])) {
-    return position as PositionCategory;
+  if (isBasePositionCategory(position)) {
+    return position;
   }
 
   return 'その他';
@@ -106,26 +113,32 @@ function getPositionLabel(position: string | null): string {
   return specificPositionLabels[position] ?? position;
 }
 
+function createEmptyGroupedSquad(): Record<PositionCategory, Player[]> {
+  return {
+    Goalkeeper: [],
+    Defence: [],
+    Midfield: [],
+    Offence: [],
+    その他: [],
+  };
+}
+
 export function TeamSquad({ squad }: TeamSquadProps) {
   // Group players by position category
-  const groupedSquad = squad.reduce<Record<PositionCategory, Player[]>>(
-    (acc, player) => {
-      const category = getPositionCategory(player.position);
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(player);
-      return acc;
-    },
-    {} as Record<PositionCategory, Player[]>
-  );
+  const groupedSquad = squad.reduce<Record<PositionCategory, Player[]>>((acc, player) => {
+    const category = getPositionCategory(player.position);
+    acc[category].push(player);
+    return acc;
+  }, createEmptyGroupedSquad());
 
-  // Sort categories by position order
-  const sortedCategories = Object.keys(groupedSquad).sort((a, b) => {
+  // Sort categories by position order, filter out empty categories
+  const sortedCategories = ALL_POSITION_CATEGORIES.filter(
+    (category) => groupedSquad[category].length > 0
+  ).sort((a, b) => {
     const orderA = positionOrder[a] ?? 5;
     const orderB = positionOrder[b] ?? 5;
     return orderA - orderB;
-  }) as PositionCategory[];
+  });
 
   return (
     <div className="space-y-8">

@@ -4,7 +4,7 @@ import type { Match, MatchTeam } from '@/types/football-api';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { formatDateTime } from '@/lib/utils';
-import { MATCH_STATUS_LABELS, MATCH_STATUS_VARIANTS } from '@/lib/football-api/constants';
+import { getMatchStatusLabel, getMatchStatusVariant } from '@/lib/football-api/constants';
 import { cn } from '@/lib/utils';
 
 interface MatchCardProps {
@@ -101,9 +101,9 @@ export function MatchCard({ match }: MatchCardProps) {
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <span className="text-xs text-muted-foreground">{formatDateTime(utcDate)}</span>
-          <Badge variant={MATCH_STATUS_VARIANTS[status] ?? 'secondary'}>
+          <Badge variant={getMatchStatusVariant(status)}>
             {isLive && <span className="mr-1.5 h-2 w-2 rounded-full bg-white animate-pulse-live" />}
-            {MATCH_STATUS_LABELS[status] ?? status}
+            {getMatchStatusLabel(status)}
           </Badge>
         </div>
 

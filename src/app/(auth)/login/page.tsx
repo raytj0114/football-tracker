@@ -17,8 +17,9 @@ interface Props {
 
 async function signInWithGoogle(formData: FormData) {
   'use server';
-  const callbackUrl = formData.get('callbackUrl') as string;
-  await signIn('google', { redirectTo: callbackUrl || '/' });
+  const callbackUrl = formData.get('callbackUrl');
+  const redirectTo = typeof callbackUrl === 'string' && callbackUrl ? callbackUrl : '/';
+  await signIn('google', { redirectTo });
 }
 
 const errorMessages: Record<string, string> = {

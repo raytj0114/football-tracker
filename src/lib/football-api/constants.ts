@@ -49,7 +49,38 @@ export type LeagueCode = (typeof AVAILABLE_LEAGUES)[number]['code'];
 
 export const DEFAULT_LEAGUE: LeagueCode = 'PL';
 
-export const MATCH_STATUS_LABELS: Record<string, string> = {
+/**
+ * Validates if a string is a valid LeagueCode
+ */
+export function isValidLeagueCode(code: string): code is LeagueCode {
+  return AVAILABLE_LEAGUES.some((league) => league.code === code);
+}
+
+/**
+ * Validates league code and returns a valid LeagueCode (defaults to DEFAULT_LEAGUE if invalid)
+ */
+export function validateLeagueCode(code: string | undefined): LeagueCode {
+  if (code && isValidLeagueCode(code)) {
+    return code;
+  }
+  return DEFAULT_LEAGUE;
+}
+
+export const MATCH_STATUSES = [
+  'SCHEDULED',
+  'TIMED',
+  'IN_PLAY',
+  'PAUSED',
+  'FINISHED',
+  'SUSPENDED',
+  'POSTPONED',
+  'CANCELLED',
+  'AWARDED',
+] as const;
+
+export type MatchStatus = (typeof MATCH_STATUSES)[number];
+
+export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
   SCHEDULED: '予定',
   TIMED: '予定',
   IN_PLAY: '試合中',
@@ -61,7 +92,7 @@ export const MATCH_STATUS_LABELS: Record<string, string> = {
   AWARDED: '裁定',
 };
 
-export const MATCH_STATUS_VARIANTS: Record<string, BadgeProps['variant']> = {
+export const MATCH_STATUS_VARIANTS: Record<MatchStatus, BadgeProps['variant']> = {
   SCHEDULED: 'secondary',
   TIMED: 'secondary',
   IN_PLAY: 'live',
@@ -72,6 +103,20 @@ export const MATCH_STATUS_VARIANTS: Record<string, BadgeProps['variant']> = {
   CANCELLED: 'destructive',
   AWARDED: 'default',
 };
+
+/**
+ * Get the label for a match status with fallback
+ */
+export function getMatchStatusLabel(status: string): string {
+  return MATCH_STATUS_LABELS[status as MatchStatus] ?? status;
+}
+
+/**
+ * Get the variant for a match status with fallback
+ */
+export function getMatchStatusVariant(status: string): BadgeProps['variant'] {
+  return MATCH_STATUS_VARIANTS[status as MatchStatus] ?? 'default';
+}
 
 // Position zones for standings table
 export const POSITION_ZONES: Record<

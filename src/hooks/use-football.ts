@@ -2,11 +2,33 @@
 
 import { useQuery } from '@tanstack/react-query';
 import type { MatchesResponse, StandingsResponse, TeamDetail } from '@/types/football-api';
+import {
+  MatchesResponseSchema,
+  StandingsResponseSchema,
+  TeamDetailSchema,
+} from '@/lib/football-api/schemas';
 
 interface FetchMatchesOptions {
   dateFrom?: string;
   dateTo?: string;
   status?: string;
+}
+
+/**
+ * Validates API response with Zod schema.
+ * In development, logs validation errors for debugging.
+ * Returns the data regardless of validation result to avoid breaking the app.
+ */
+function validateResponse<T>(
+  data: unknown,
+  schema: { safeParse: (data: unknown) => { success: boolean; error?: { issues: unknown[] } } },
+  name: string
+): T {
+  const result = schema.safeParse(data);
+  if (!result.success && process.env.NODE_ENV === 'development') {
+    console.warn(`[API Validation] ${name} response validation failed:`, result.error?.issues);
+  }
+  return data as T;
 }
 
 async function fetchMatches(
@@ -22,7 +44,8 @@ async function fetchMatches(
   if (!res.ok) {
     throw new Error('Failed to fetch matches');
   }
-  return res.json();
+  const data = await res.json();
+  return validateResponse<MatchesResponse>(data, MatchesResponseSchema, 'Matches');
 }
 
 async function fetchStandings(league: string): Promise<StandingsResponse> {
@@ -30,7 +53,8 @@ async function fetchStandings(league: string): Promise<StandingsResponse> {
   if (!res.ok) {
     throw new Error('Failed to fetch standings');
   }
-  return res.json();
+  const data = await res.json();
+  return validateResponse<StandingsResponse>(data, StandingsResponseSchema, 'Standings');
 }
 
 async function fetchTeam(id: number): Promise<TeamDetail> {
@@ -38,7 +62,8 @@ async function fetchTeam(id: number): Promise<TeamDetail> {
   if (!res.ok) {
     throw new Error('Failed to fetch team');
   }
-  return res.json();
+  const data = await res.json();
+  return validateResponse<TeamDetail>(data, TeamDetailSchema, 'Team');
 }
 
 export function useMatches(league: string, options?: FetchMatchesOptions) {

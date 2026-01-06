@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Trophy } from 'lucide-react';
 import { footballAPI, FootballAPIError } from '@/lib/football-api/client';
-import { DEFAULT_LEAGUE, type LeagueCode } from '@/lib/football-api/constants';
+import { validateLeagueCode, type LeagueCode } from '@/lib/football-api/constants';
 import { StandingsTable } from '@/components/features/standings/standings-table';
 import { LeagueSelector } from '@/components/features/matches/league-selector';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -32,7 +32,7 @@ function StandingsTableSkeleton() {
   );
 }
 
-async function StandingsWrapper({ league }: { league: string }) {
+async function StandingsWrapper({ league }: { league: LeagueCode }) {
   try {
     const data = await footballAPI.getStandings(league);
     const totalStandings = data.standings.find((s) => s.type === 'TOTAL');
@@ -77,7 +77,7 @@ async function StandingsWrapper({ league }: { league: string }) {
         </Card>
 
         {/* Standings Table */}
-        <StandingsTable standings={totalStandings.table} leagueCode={league as LeagueCode} />
+        <StandingsTable standings={totalStandings.table} leagueCode={league} />
       </div>
     );
   } catch (error) {
@@ -89,7 +89,8 @@ async function StandingsWrapper({ league }: { league: string }) {
 }
 
 export default async function StandingsPage({ searchParams }: Props) {
-  const { league = DEFAULT_LEAGUE } = await searchParams;
+  const { league: leagueParam } = await searchParams;
+  const league = validateLeagueCode(leagueParam);
 
   return (
     <div className="container mx-auto px-4 py-8 lg:px-6">

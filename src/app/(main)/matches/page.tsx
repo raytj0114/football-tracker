@@ -5,7 +5,11 @@ import { Calendar } from 'lucide-react';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { footballAPI, FootballAPIError } from '@/lib/football-api/client';
-import { DEFAULT_LEAGUE, AVAILABLE_LEAGUES } from '@/lib/football-api/constants';
+import {
+  AVAILABLE_LEAGUES,
+  validateLeagueCode,
+  type LeagueCode,
+} from '@/lib/football-api/constants';
 import { MatchListWithFilters } from '@/components/features/matches/match-list-with-filters';
 import { LeagueSelector } from '@/components/features/matches/league-selector';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,7 +35,7 @@ function MatchListSkeleton() {
   );
 }
 
-async function MatchListWrapper({ league }: { league: string }) {
+async function MatchListWrapper({ league }: { league: LeagueCode }) {
   try {
     const [matchesData, standingsData, session] = await Promise.all([
       footballAPI.getMatches(league),
@@ -93,7 +97,8 @@ async function MatchListWrapper({ league }: { league: string }) {
 }
 
 export default async function MatchesPage({ searchParams }: Props) {
-  const { league = DEFAULT_LEAGUE } = await searchParams;
+  const { league: leagueParam } = await searchParams;
+  const league = validateLeagueCode(leagueParam);
 
   return (
     <div className="container mx-auto px-4 py-8 lg:px-6">
