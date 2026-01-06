@@ -1,46 +1,85 @@
 ---
 name: nextjs-patterns
-description: Next.js App Router開発のベストプラクティス。Server Components、データフェッチ、キャッシュ、エラーハンドリング。Next.js実装時に使用。
+description: Next.js App Routerのベストプラクティス適用。Server Components, data fetching, server actionsに使用。
+triggers:
+  - Next.js
+  - React
+  - routing
+  - components
+  - server actions
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__playwright
+version: 1.0
 ---
 
-# Next.js App Router パターン
+# Next.js Best Practices (App Router)
 
-## 概要
+## 原則（仕様は既存コードから調査すること）
 
-Next.js 16+ App Routerでのモダンなフルスタック開発パターン。
+- Server Componentsをデフォルト、'use client'は必要な場合のみ
+- データ取得はServer Component内でasync/await
+- MutationsはServer Actions優先
+- パフォーマンス: Suspense, revalidatePath, cache()
 
-## ファイル規約
+## 発動時のワークフロー
 
-| ファイル        | 用途                       |
-| --------------- | -------------------------- |
-| `page.tsx`      | ルートUI                   |
-| `layout.tsx`    | 共有レイアウト             |
-| `loading.tsx`   | ローディングUI（Suspense） |
-| `error.tsx`     | エラーUI（Error Boundary） |
-| `not-found.tsx` | 404ページ                  |
-| `route.ts`      | API Route Handler          |
+### 1. 調査（実装前に必ず実行）
 
-## データフェッチ
+```bash
+# 既存構造の確認
+find app -name "*.tsx" | head -20
 
-Server Componentで直接fetchを使用。キャッシュ戦略を適切に設定。
+# Client Componentの使用状況
+grep -r "use client" app/ --include="*.tsx"
 
-```typescript
-// 再検証（推奨）
-fetch(url, { next: { revalidate: 60 } });
+# 既存のUIコンポーネント
+ls src/components/ui/
 
-// 静的
-fetch(url, { cache: 'force-cache' });
-
-// 動的
-fetch(url, { cache: 'no-store' });
+# package.jsonでバージョン確認
+cat package.json | grep -E "next|react"
 ```
 
-## 実装時の指針
+### 2. 実装
 
-1. **Server優先**: デフォルトはServer Component
-2. **'use client'**: インタラクションが必要な場合のみ
-3. **データフェッチ**: Server Componentで行い、propsで渡す
-4. **エラー処理**: error.tsx と loading.tsx を各ルートに配置
+- 既存パターンに従う（調査結果を基に判断）
+- 既存UIコンポーネントを再利用
+- 変更は最小限に
 
-詳細なコード例は `examples.md` を参照。
-Server Actions や Route Handler の例は `patterns.md` を参照。
+### 3. 検証（必須）
+
+```bash
+# 静的解析
+npm run type-check
+npm run lint
+
+# ビルド確認
+npm run build
+
+# 動作確認
+npm run dev
+```
+
+### 4. ブラウザ検証（Playwright使用）
+
+- 該当ページにアクセス
+- コンソールエラーがないことを確認
+- 意図した表示・動作を確認
+- レスポンシブ確認（viewport切り替え）
+
+## 報告形式
+
+```
+## Next.js実装レポート
+
+### 調査結果
+- 既存パターン: Server/Client比率、使用コンポーネント
+- package.jsonバージョン: next@X.X.X
+
+### 変更内容
+- ファイル: 変更概要
+
+### 検証結果
+- type-check: OK/NG
+- lint: OK/NG
+- build: OK/NG
+- ブラウザ確認: OK/NG（URL、確認項目）
+```

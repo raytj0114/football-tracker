@@ -47,7 +47,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/scripts/type-check.js"
+            "command": "node .claude/scripts/verify-on-stop.js && .claude/scripts/type-check.js"
           }
         ]
       }

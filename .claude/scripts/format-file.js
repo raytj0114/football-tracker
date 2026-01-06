@@ -3,9 +3,6 @@
  * 編集されたファイルを自動フォーマットするスクリプト
  * Claude Code の PostToolUse hook で使用
  * 
- * 対象:
- *   - .ts, .tsx, .js, .jsx → prettier + eslint
- *   - .css, .scss, .json, .md → prettier のみ
  */
 
 const { execSync } = require('child_process');

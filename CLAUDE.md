@@ -1,160 +1,101 @@
 # Football App
 
-## プロジェクト概要
+## このファイルの目的
 
-サッカー情報を表示するフルスタックWebアプリケーション。
-Football-Data.org APIからデータを取得し、試合情報、順位表、チーム情報をユーザーに提供。
+Claudeが自律的に高品質な実装を行うためのルールを定義する。
+**仕様や実装パターンは記載しない** - それらは実装時に自ら調査・判断すること。
 
-## 技術スタック
+## 品質原則
 
-### フロントエンド
+### Craftsmanship Principles
 
-- **Framework**: Next.js 16+ (App Router)
-- **Language**: TypeScript (strict mode)
-- **Styling**: Tailwind CSS
-- **State Management**:
-  - Server: React Query (@tanstack/react-query)
-  - Client: Zustand
+1. **細部に魂を込める**: ユーザーに見えない部分（内部のコード、命名、構造）にも最大限のこだわりを持つ。見えない部分の品質が、作り手としての誠実さを表す。
+2. **一貫性を徹底する**: UIの文言を変えたら、関連する変数名・ファイル名・コンポーネント名もすべて揃える。「ユーザーに見えないから」は言い訳にならない。
+3. **妥協しない**: 「動けばいい」ではなく「正しくあるべき」を追求する。
 
-### バックエンド
+## 検証ループ（最重要）
 
-- **API**: Next.js Route Handlers
-- **Database**: PostgreSQL + Prisma ORM
-- **Authentication**: NextAuth.js v5 (Auth.js)
+**すべての実装は「実装→検証→修正」のループを回すこと。このループが品質を2〜3倍向上させる。**
 
-### 外部API
+### 実装前
 
-- **Football-Data.org**: https://api.football-data.org/v4/
-  - 認証: `X-Auth-Token` ヘッダー
-  - レート制限: 10 req/min (無料プラン)
+1. 関連する既存コードを確認し、プロジェクトのパターンを把握する
+2. 使用するパッケージの**現在のバージョン**（package.json）と**最新のドキュメント**を確認する
+3. 不明点があれば推測せず、調査する
+
+### 実装後（必ず実行）
+
+以下を順番に実行し、**すべてパスするまで修正を繰り返す**：
+
+```bash
+# 1. 型チェック
+npm run type-check
+
+# 2. リント
+npm run lint
+
+# 3. ビルド
+npm run build
+
+# 4. テスト（関連テストがある場合）
+npm run test
+
+# 5. 動作確認
+npm run dev
+# → ブラウザで http://localhost:3000 にアクセスし、変更箇所を確認
+```
+
+### 検証で問題が見つかった場合
+
+1. エラーメッセージを**全文**読み、根本原因を特定する
+2. 推測で修正せず、ドキュメントやコードを確認する
+3. 修正後、**検証ループを最初から**回す
+4. 同じエラーが繰り返される場合、アプローチ自体を見直す
+
+### 動作確認の観点
+
+- コンソールにエラーが出ていないか
+- 意図した動作をしているか
+- 既存機能が壊れていないか
+- レスポンシブ対応は問題ないか（該当する場合）
+
+## 禁止事項
+
+- [ ] 動作確認せずに「完了」と報告すること
+- [ ] エラーを無視または握りつぶすこと
+- [ ] 既存コードのパターンを確認せずに実装すること
+- [ ] パッケージのバージョンを確認せずに古い書き方をすること
+- [ ] 「たぶん動く」という状態で終わらせること
 
 ## 主要コマンド
 
 ```bash
 npm run dev          # 開発サーバー起動
 npm run build        # プロダクションビルド
-npm run start        # プロダクションサーバー起動
 npm run lint         # ESLint実行
 npm run lint:fix     # ESLint自動修正
 npm run type-check   # TypeScriptチェック
 npm run test         # テスト実行
-npm run test:coverage # カバレッジ付きテスト
 npm run format       # Prettier実行
-npx prisma generate  # Prismaクライアント生成
-npx prisma db push   # DBスキーマ同期
-npx prisma studio    # Prisma GUI
 ```
 
-## ディレクトリ構造
+## 調査方法
 
-```
-src/
-├── app/                    # Next.js App Router
-│   ├── (auth)/            # 認証ページグループ
-│   ├── (main)/            # メインページグループ
-│   ├── api/               # API Routes
-│   └── providers.tsx      # グローバルProviders
-├── components/
-│   ├── ui/                # 汎用UIコンポーネント
-│   ├── features/          # 機能別コンポーネント
-│   └── layout/            # レイアウトコンポーネント
-├── hooks/                 # カスタムフック
-├── lib/
-│   ├── football-api/      # Football API クライアント
-│   ├── prisma.ts          # Prismaクライアント
-│   └── utils.ts           # ユーティリティ
-├── stores/                # Zustandストア
-└── types/                 # TypeScript型定義
+### パッケージの使い方を調べる
 
-prisma/
-└── schema.prisma          # DBスキーマ
-```
+1. `package.json` で現在のバージョンを確認
+2. 公式ドキュメントで該当バージョンの使い方を確認
+3. 既存コードで使用パターンを確認
 
-## コーディング規約
+### APIの仕様を調べる
 
-### TypeScript
+1. 既存の実装（`src/lib/`配下）を確認
+2. 必要に応じて実際にAPIを叩いてレスポンスを確認
+3. スキーマ（`src/lib/football-api/schemas.ts`）と照合
 
-- `strict: true` 必須
-- `any` 禁止、明示的な型定義
-- Zodでランタイムバリデーション
+### エラーの原因を調べる
 
-### React
-
-- Server Components をデフォルトで使用
-- `'use client'` は必要な場合のみ
-- Props は interface で定義
-
-### スタイリング
-
-- Tailwind CSS のユーティリティクラス使用
-- `cn()` ヘルパーでクラス結合
-- コンポーネント固有スタイルは同ファイル内
-
-### API
-
-- 全レスポンスはZodでバリデーション
-- エラーは適切なHTTPステータスで返却
-- レート制限を考慮したキャッシュ戦略
-
-## 環境変数
-
-```bash
-# 必須
-FOOTBALL_DATA_API_KEY=    # Football-Data.org APIキー
-NEXTAUTH_SECRET=          # セッション暗号化キー
-NEXTAUTH_URL=             # アプリのベースURL
-DATABASE_URL=             # PostgreSQL接続文字列
-
-# Supabase本番環境用（マイグレーション）
-DIRECT_URL=               # 直接接続URL（ポート5432）
-
-# OAuth
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-```
-
-## 認証フロー
-
-1. 未認証ユーザー: 公開ページ（試合一覧、順位表）のみアクセス可
-2. ログイン: Google OAuth
-3. 認証済みユーザー: お気に入りチーム登録、通知設定などが可能
-
-## Football-Data.org API
-
-### 利用可能リーグ（無料プラン）
-
-- `PL` - Premier League
-- `BL1` - Bundesliga
-- `SA` - Serie A
-- `PD` - La Liga
-- `FL1` - Ligue 1
-- `CL` - Champions League
-
-### 主要エンドポイント
-
-- `GET /v4/competitions/{code}/matches` - 試合一覧
-- `GET /v4/competitions/{code}/standings` - 順位表
-- `GET /v4/teams/{id}` - チーム詳細
-
-## CI/CD
-
-- **CI**: GitHub Actions (lint, type-check, test, build)
-- **Deploy**: Vercel Git Integration（mainプッシュで自動デプロイ）
-- **DB**: Supabase PostgreSQL（本番環境）
-
-## トラブルシューティング
-
-### APIレート制限エラー (429)
-
-- 60秒待機してリトライ
-- キャッシュ戦略を見直す
-
-### 認証エラー
-
-- `NEXTAUTH_SECRET` が設定されているか確認
-- OAuth コールバックURLが正しいか確認
-
-### DB接続エラー
-
-- `DATABASE_URL` の形式確認
-- Prismaクライアント再生成: `npx prisma generate`
+1. エラーメッセージを正確に読む
+2. スタックトレースで発生箇所を特定
+3. 該当コードと周辺のコンテキストを確認
+4. 類似のエラーが他の場所で解決されていないか確認
