@@ -104,8 +104,7 @@ jobs:
       - name: Build application
         run: npm run build
         env:
-          FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          SKIP_ENV_VALIDATION: 'true'
           NEXTAUTH_URL: https://example.com
 
       - name: Upload build artifact
