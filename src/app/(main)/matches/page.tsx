@@ -15,6 +15,7 @@ import { LeagueSelector } from '@/components/features/matches/league-selector';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { RateLimitError } from '@/components/ui/rate-limit-error';
+import { TransitionContent } from '@/components/ui/transition-content';
 
 export const metadata: Metadata = {
   title: '試合一覧 | Football Tracker (ベータ版)',
@@ -120,9 +121,11 @@ export default async function MatchesPage({ searchParams }: Props) {
       </div>
 
       {/* Match List */}
-      <Suspense fallback={<MatchListSkeleton />}>
-        <MatchListWrapper league={league} />
-      </Suspense>
+      <TransitionContent>
+        <Suspense fallback={<MatchListSkeleton />}>
+          <MatchListWrapper league={league} />
+        </Suspense>
+      </TransitionContent>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
 import { useState, type ReactNode } from 'react';
+import { NavigationTransitionProvider } from '@/components/providers/navigation-transition-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 
 interface ProvidersProps {
@@ -25,7 +26,9 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <SessionProvider>
       <ThemeProvider>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          <NavigationTransitionProvider>{children}</NavigationTransitionProvider>
+        </QueryClientProvider>
       </ThemeProvider>
     </SessionProvider>
   );
