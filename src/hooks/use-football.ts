@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import type { z } from 'zod';
 import type { MatchesResponse, StandingsResponse, TeamDetail } from '@/types/football-api';
 import {
   MatchesResponseSchema,
@@ -15,20 +16,36 @@ interface FetchMatchesOptions {
 }
 
 /**
- * Validates API response with Zod schema.
- * In development, logs validation errors for debugging.
- * Returns the data regardless of validation result to avoid breaking the app.
+ * API response validation error
  */
-function validateResponse<T>(
-  data: unknown,
-  schema: { safeParse: (data: unknown) => { success: boolean; error?: { issues: unknown[] } } },
-  name: string
-): T {
-  const result = schema.safeParse(data);
-  if (!result.success && process.env.NODE_ENV === 'development') {
-    console.warn(`[API Validation] ${name} response validation failed:`, result.error?.issues);
+export class APIValidationError extends Error {
+  constructor(
+    public endpoint: string,
+    public issues: unknown[]
+  ) {
+    super(`API response validation failed for ${endpoint}`);
+    this.name = 'APIValidationError';
   }
-  return data as T;
+}
+
+/**
+ * Validates API response with Zod schema.
+ * Throws APIValidationError if validation fails.
+ */
+function validateResponse<T>(data: unknown, schema: z.ZodType<T>, name: string): T {
+  const result = schema.safeParse(data);
+
+  if (!result.success) {
+    const issues = result.error.issues;
+
+    // Log error for debugging/monitoring
+    console.error(`[API Validation] ${name} response validation failed:`, issues);
+
+    // Throw error to trigger React Query's error state
+    throw new APIValidationError(name, issues);
+  }
+
+  return result.data;
 }
 
 async function fetchMatches(

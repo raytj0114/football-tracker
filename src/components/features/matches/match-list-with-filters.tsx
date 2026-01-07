@@ -4,10 +4,17 @@ import { useState, useMemo } from 'react';
 import { Calendar, List } from 'lucide-react';
 import type { Match } from '@/types/football-api';
 import { MatchList } from './match-list';
-import { MatchFilters, type TeamOption } from './match-filters';
+import { MatchFilters } from './match-filters';
 import { MatchCalendar } from './match-calendar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import {
+  useMatchData,
+  useListFilters,
+  useCalendarFilters,
+  useFilteredMatchesForList,
+  useFilteredMatchesForCalendar,
+} from '@/hooks/use-match-filters';
 
 type ViewMode = 'list' | 'calendar';
 
@@ -27,167 +34,54 @@ export function MatchListWithFilters({
   // View mode
   const [viewMode, setViewMode] = useState<ViewMode>('list');
 
-  // List view state
-  const [selectedMatchday, setSelectedMatchday] = useState<number | null>(null);
-  const [selectedTeamIds, setSelectedTeamIds] = useState<number[]>([]);
-  const [includeFavorites, setIncludeFavorites] = useState(false);
+  // Extract data from matches
+  const { matchdays, matchdayCounts, teams, leagueFavoriteTeamIds } = useMatchData(
+    matches,
+    favoriteTeamIds
+  );
 
-  // Calendar view state
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [calendarTeamIds, setCalendarTeamIds] = useState<number[]>([]);
-  const [calendarIncludeFavorites, setCalendarIncludeFavorites] = useState(false);
+  // List view filters
+  const listFilters = useListFilters(leagueCode);
 
-  // Reset filters when league changes
-  const [prevLeagueCode, setPrevLeagueCode] = useState(leagueCode);
-  if (leagueCode !== prevLeagueCode) {
-    setPrevLeagueCode(leagueCode);
-    setSelectedMatchday(null);
-    setSelectedTeamIds([]);
-    setIncludeFavorites(false);
-    setSelectedDate(null);
-    setCalendarTeamIds([]);
-    setCalendarIncludeFavorites(false);
-  }
+  // Calendar view filters
+  const calendarFilters = useCalendarFilters(leagueCode);
 
-  const hasTeamFilter = selectedTeamIds.length > 0 || includeFavorites;
+  // Computed values for list view
+  const hasTeamFilter = listFilters.selectedTeamIds.length > 0 || listFilters.includeFavorites;
 
-  // Extract unique matchdays from matches
-  const matchdays = useMemo(() => {
-    const mdSet = new Set<number>();
-    matches.forEach((match) => {
-      if (match.matchday !== null) {
-        mdSet.add(match.matchday);
-      }
-    });
-    return Array.from(mdSet).sort((a, b) => a - b);
-  }, [matches]);
-
-  // Calculate match counts per matchday
-  const matchdayCounts = useMemo(() => {
-    const counts: Record<number, { total: number; live: number; finished: number }> = {};
-    matches.forEach((match) => {
-      if (match.matchday === null) return;
-      const md = match.matchday;
-      if (!counts[md]) {
-        counts[md] = { total: 0, live: 0, finished: 0 };
-      }
-      const entry = counts[md];
-      entry.total++;
-      if (match.status === 'IN_PLAY' || match.status === 'PAUSED') {
-        entry.live++;
-      }
-      if (match.status === 'FINISHED') {
-        entry.finished++;
-      }
-    });
-    return counts;
-  }, [matches]);
-
-  // Determine which matchday to show (default to current matchday)
-  const displayMatchday = selectedMatchday ?? currentMatchday ?? matchdays[matchdays.length - 1];
-
-  // Extract unique teams from matches (these are the teams in current league)
-  const teams = useMemo(() => {
-    const teamMap = new Map<number, TeamOption>();
-
-    matches.forEach((match) => {
-      if (match.homeTeam.id !== null) {
-        teamMap.set(match.homeTeam.id, {
-          id: match.homeTeam.id,
-          name: match.homeTeam.name || 'Unknown',
-          crest: match.homeTeam.crest,
-        });
-      }
-      if (match.awayTeam.id !== null) {
-        teamMap.set(match.awayTeam.id, {
-          id: match.awayTeam.id,
-          name: match.awayTeam.name || 'Unknown',
-          crest: match.awayTeam.crest,
-        });
-      }
-    });
-
-    return Array.from(teamMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [matches]);
-
-  // Filter favorite team IDs to only include teams in current league
-  const leagueFavoriteTeamIds = useMemo(() => {
-    const leagueTeamIds = new Set(teams.map((t) => t.id));
-    return favoriteTeamIds.filter((id) => leagueTeamIds.has(id));
-  }, [teams, favoriteTeamIds]);
-
-  // Get all team IDs to filter for list view (including favorites if selected)
   const filterTeamIds = useMemo(() => {
-    const ids = new Set(selectedTeamIds);
-    if (includeFavorites) {
+    const ids = new Set(listFilters.selectedTeamIds);
+    if (listFilters.includeFavorites) {
       leagueFavoriteTeamIds.forEach((id) => ids.add(id));
     }
     return Array.from(ids);
-  }, [selectedTeamIds, includeFavorites, leagueFavoriteTeamIds]);
+  }, [listFilters.selectedTeamIds, listFilters.includeFavorites, leagueFavoriteTeamIds]);
 
-  // Get all team IDs to filter for calendar view
+  // Computed values for calendar view
   const calendarFilterTeamIds = useMemo(() => {
-    const ids = new Set(calendarTeamIds);
-    if (calendarIncludeFavorites) {
+    const ids = new Set(calendarFilters.selectedTeamIds);
+    if (calendarFilters.includeFavorites) {
       leagueFavoriteTeamIds.forEach((id) => ids.add(id));
     }
     return Array.from(ids);
-  }, [calendarTeamIds, calendarIncludeFavorites, leagueFavoriteTeamIds]);
+  }, [calendarFilters.selectedTeamIds, calendarFilters.includeFavorites, leagueFavoriteTeamIds]);
 
-  // Filter matches for list view - matchday first, then team filter within matchday
-  const filteredMatchesForList = useMemo(() => {
-    let result = [...matches];
+  // Determine which matchday to show (use .at() for safe array access)
+  const displayMatchday = listFilters.selectedMatchday ?? currentMatchday ?? matchdays.at(-1);
 
-    // Always apply matchday filter first
-    if (displayMatchday !== null && displayMatchday !== undefined) {
-      result = result.filter((m) => m.matchday === displayMatchday);
-    }
+  // Filtered matches
+  const filteredMatchesForList = useFilteredMatchesForList(
+    matches,
+    displayMatchday,
+    filterTeamIds,
+    hasTeamFilter
+  );
 
-    // Then apply team filter within the matchday
-    if (hasTeamFilter && filterTeamIds.length > 0) {
-      result = result.filter(
-        (m) =>
-          (m.homeTeam.id !== null && filterTeamIds.includes(m.homeTeam.id)) ||
-          (m.awayTeam.id !== null && filterTeamIds.includes(m.awayTeam.id))
-      );
-    }
-
-    // Sort by date (ascending)
-    result.sort((a, b) => {
-      const dateA = new Date(a.utcDate).getTime();
-      const dateB = new Date(b.utcDate).getTime();
-      return dateA - dateB;
-    });
-
-    return result;
-  }, [matches, displayMatchday, hasTeamFilter, filterTeamIds]);
-
-  // Filter matches for calendar view (by selected date and team filter)
-  const filteredMatchesForCalendar = useMemo(() => {
-    let result = [...matches];
-
-    // Apply team filter if active
-    if (calendarFilterTeamIds.length > 0) {
-      result = result.filter(
-        (m) =>
-          (m.homeTeam.id !== null && calendarFilterTeamIds.includes(m.homeTeam.id)) ||
-          (m.awayTeam.id !== null && calendarFilterTeamIds.includes(m.awayTeam.id))
-      );
-    }
-
-    // Then filter by date
-    const targetDate = selectedDate || new Date();
-    result = result.filter((m) => {
-      const matchDate = new Date(m.utcDate);
-      return (
-        matchDate.getDate() === targetDate.getDate() &&
-        matchDate.getMonth() === targetDate.getMonth() &&
-        matchDate.getFullYear() === targetDate.getFullYear()
-      );
-    });
-
-    return result.sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime());
-  }, [matches, selectedDate, calendarFilterTeamIds]);
+  const filteredMatchesForCalendar = useFilteredMatchesForCalendar(
+    matches,
+    calendarFilters.selectedDate,
+    calendarFilterTeamIds
+  );
 
   // If no matchdays exist (e.g., CL knockout stages), show all matches in list mode
   if (matchdays.length === 0) {
@@ -197,19 +91,6 @@ export function MatchListWithFilters({
       </div>
     );
   }
-
-  const formatSelectedDate = (date: Date | null) => {
-    if (!date) {
-      const today = new Date();
-      return `${today.getMonth() + 1}月${today.getDate()}日（今日）`;
-    }
-    const today = new Date();
-    const isToday =
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear();
-    return `${date.getMonth() + 1}月${date.getDate()}日${isToday ? '（今日）' : ''}`;
-  };
 
   return (
     <div className="space-y-6">
@@ -241,13 +122,13 @@ export function MatchListWithFilters({
           <MatchFilters
             matchdays={matchdays}
             currentMatchday={currentMatchday}
-            selectedMatchday={selectedMatchday}
-            onMatchdayChange={setSelectedMatchday}
+            selectedMatchday={listFilters.selectedMatchday}
+            onMatchdayChange={listFilters.setSelectedMatchday}
             teams={teams}
-            selectedTeamIds={selectedTeamIds}
-            onTeamFilterChange={setSelectedTeamIds}
-            includeFavorites={includeFavorites}
-            onFavoritesFilterChange={setIncludeFavorites}
+            selectedTeamIds={listFilters.selectedTeamIds}
+            onTeamFilterChange={listFilters.setSelectedTeamIds}
+            includeFavorites={listFilters.includeFavorites}
+            onFavoritesFilterChange={listFilters.setIncludeFavorites}
             favoriteTeamIds={leagueFavoriteTeamIds}
             matchdayCounts={matchdayCounts}
           />
@@ -269,16 +150,18 @@ export function MatchListWithFilters({
             matches={matches}
             teams={teams}
             favoriteTeamIds={leagueFavoriteTeamIds}
-            selectedTeamIds={calendarTeamIds}
-            onTeamFilterChange={setCalendarTeamIds}
-            includeFavorites={calendarIncludeFavorites}
-            onFavoritesFilterChange={setCalendarIncludeFavorites}
-            selectedDate={selectedDate}
-            onDateSelect={setSelectedDate}
+            selectedTeamIds={calendarFilters.selectedTeamIds}
+            onTeamFilterChange={calendarFilters.setSelectedTeamIds}
+            includeFavorites={calendarFilters.includeFavorites}
+            onFavoritesFilterChange={calendarFilters.setIncludeFavorites}
+            selectedDate={calendarFilters.selectedDate}
+            onDateSelect={calendarFilters.setSelectedDate}
           />
 
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold">{formatSelectedDate(selectedDate)}</h3>
+            <h3 className="text-lg font-semibold">
+              <FormattedDate date={calendarFilters.selectedDate} />
+            </h3>
             {filteredMatchesForCalendar.length > 0 ? (
               <MatchList matches={filteredMatchesForCalendar} />
             ) : (
@@ -290,5 +173,21 @@ export function MatchListWithFilters({
         </>
       )}
     </div>
+  );
+}
+
+// Helper component for date formatting
+function FormattedDate({ date }: { date: Date | null }) {
+  const targetDate = date || new Date();
+  const today = new Date();
+  const isToday =
+    targetDate.getDate() === today.getDate() &&
+    targetDate.getMonth() === today.getMonth() &&
+    targetDate.getFullYear() === today.getFullYear();
+
+  return (
+    <>
+      {targetDate.getMonth() + 1}月{targetDate.getDate()}日{isToday ? '（今日）' : ''}
+    </>
   );
 }
