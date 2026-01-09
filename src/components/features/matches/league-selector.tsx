@@ -2,9 +2,11 @@
 
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
+import { useOptimistic } from 'react';
 import { AVAILABLE_LEAGUES, DEFAULT_LEAGUE } from '@/lib/football-api/constants';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigationTransition } from '@/hooks/use-navigation-transition';
+import { cn } from '@/lib/utils';
 
 interface LeagueSelectorProps {
   basePath: string;
@@ -12,25 +14,39 @@ interface LeagueSelectorProps {
 
 export function LeagueSelector({ basePath }: LeagueSelectorProps) {
   const searchParams = useSearchParams();
-  const { navigateWithTransition } = useNavigationTransition();
+  const { isPending, navigateWithTransition } = useNavigationTransition();
   const currentLeague = searchParams.get('league') ?? DEFAULT_LEAGUE;
+
+  const [optimisticLeague, setOptimisticLeague] = useOptimistic(currentLeague);
 
   const handleLeagueChange = (code: string) => {
     if (code === currentLeague) return;
 
+    setOptimisticLeague(code);
     const params = new URLSearchParams(searchParams.toString());
     params.set('league', code);
     navigateWithTransition(`${basePath}?${params.toString()}`);
   };
 
   return (
-    <Tabs value={currentLeague} onValueChange={handleLeagueChange} className="w-full">
-      <TabsList className="h-auto w-full flex-wrap gap-1 bg-transparent p-0">
+    <Tabs value={optimisticLeague} onValueChange={handleLeagueChange} className="w-full">
+      <TabsList
+        className={cn(
+          'h-auto w-full flex-wrap gap-1 bg-transparent p-0',
+          'transition-opacity duration-150',
+          isPending && 'opacity-70'
+        )}
+      >
         {AVAILABLE_LEAGUES.map((league) => (
           <TabsTrigger
             key={league.code}
             value={league.code}
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            disabled={isPending}
+            className={cn(
+              'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground',
+              'transition-all duration-150',
+              isPending && 'cursor-wait'
+            )}
           >
             <div className="mr-1.5 flex h-5 w-5 items-center justify-center rounded bg-white p-0.5">
               <Image

@@ -1,13 +1,36 @@
+'use client';
+
 import { Clock, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { useNavigationTransition } from '@/hooks/use-navigation-transition';
 
 interface RateLimitErrorProps {
   returnPath?: string;
 }
 
+function RetryLoadingSkeleton() {
+  return (
+    <div className="space-y-4">
+      {[...Array(6)].map((_, i) => (
+        <Skeleton key={i} className="h-32 w-full" />
+      ))}
+    </div>
+  );
+}
+
 export function RateLimitError({ returnPath = '/' }: RateLimitErrorProps) {
+  const { isPending, navigateWithTransition } = useNavigationTransition();
+
+  const handleRetry = () => {
+    navigateWithTransition(returnPath);
+  };
+
+  if (isPending) {
+    return <RetryLoadingSkeleton />;
+  }
+
   return (
     <div className="flex min-h-[50vh] items-center justify-center">
       <Card className="w-full max-w-md">
@@ -20,8 +43,9 @@ export function RateLimitError({ returnPath = '/' }: RateLimitErrorProps) {
           <p className="mb-6 text-sm text-muted-foreground">
             60秒ほどお待ちいただいてから再度お試しください
           </p>
-          <Link
-            href={returnPath}
+          <button
+            type="button"
+            onClick={handleRetry}
             className={cn(
               'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-all',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
@@ -32,7 +56,7 @@ export function RateLimitError({ returnPath = '/' }: RateLimitErrorProps) {
           >
             <RefreshCw className="h-4 w-4" />
             再試行
-          </Link>
+          </button>
         </CardContent>
       </Card>
     </div>
