@@ -13,5 +13,5 @@ export function useNavigationTransition() {
     });
   };
 
-  return { isPending, navigateWithTransition };
+  return { isPending, startTransition, navigateWithTransition };
 }

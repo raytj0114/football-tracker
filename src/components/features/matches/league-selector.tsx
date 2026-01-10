@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useOptimistic } from 'react';
 import { AVAILABLE_LEAGUES, DEFAULT_LEAGUE } from '@/lib/football-api/constants';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,7 +14,8 @@ interface LeagueSelectorProps {
 
 export function LeagueSelector({ basePath }: LeagueSelectorProps) {
   const searchParams = useSearchParams();
-  const { isPending, navigateWithTransition } = useNavigationTransition();
+  const { isPending, startTransition } = useNavigationTransition();
+  const router = useRouter();
   const currentLeague = searchParams.get('league') ?? DEFAULT_LEAGUE;
 
   const [optimisticLeague, setOptimisticLeague] = useOptimistic(currentLeague);
@@ -22,10 +23,13 @@ export function LeagueSelector({ basePath }: LeagueSelectorProps) {
   const handleLeagueChange = (code: string) => {
     if (code === currentLeague) return;
 
-    setOptimisticLeague(code);
     const params = new URLSearchParams(searchParams.toString());
     params.set('league', code);
-    navigateWithTransition(`${basePath}?${params.toString()}`);
+
+    startTransition(() => {
+      setOptimisticLeague(code);
+      router.push(`${basePath}?${params.toString()}`);
+    });
   };
 
   return (
