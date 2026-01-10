@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RateLimitError } from '@/components/ui/rate-limit-error';
+import { TransitionContent } from '@/components/ui/transition-content';
 
 export const metadata: Metadata = {
   title: '順位表 | Football Tracker (ベータ版)',
@@ -112,9 +113,11 @@ export default async function StandingsPage({ searchParams }: Props) {
       </div>
 
       {/* Standings */}
-      <Suspense fallback={<StandingsTableSkeleton />}>
-        <StandingsWrapper league={league} />
-      </Suspense>
+      <TransitionContent>
+        <Suspense fallback={<StandingsTableSkeleton />}>
+          <StandingsWrapper league={league} />
+        </Suspense>
+      </TransitionContent>
     </div>
   );
 }
