@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -15,6 +16,7 @@ interface MobileNavProps {
 
 export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   const pathname = usePathname();
+  const [isClosing, setIsClosing] = useState(false);
 
   const navItems = [
     { href: '/', label: 'ホーム', icon: Home },
@@ -23,21 +25,51 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
     { href: '/favorites', label: 'お気に入り', icon: Heart },
   ];
 
-  if (!open) return null;
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+  }, []);
+
+  // Handle animation end
+  useEffect(() => {
+    if (isClosing) {
+      const timer = setTimeout(() => {
+        setIsClosing(false);
+        onOpenChange(false);
+      }, 300); // Match animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [isClosing, onOpenChange]);
+
+  // Reset isClosing when opening
+  useEffect(() => {
+    if (open) {
+      setIsClosing(false);
+    }
+  }, [open]);
+
+  if (!open && !isClosing) return null;
 
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-background/80 backdrop-blur-sm"
-        onClick={() => onOpenChange(false)}
+        className={cn(
+          'fixed inset-0 bg-background/80 backdrop-blur-sm',
+          isClosing ? 'animate-fade-out' : 'animate-fade-in'
+        )}
+        onClick={handleClose}
       />
 
       {/* Sidebar */}
-      <nav className="fixed inset-y-0 left-0 w-72 border-r border-border bg-card p-6 shadow-lg animate-slide-in-left">
+      <nav
+        className={cn(
+          'fixed inset-y-0 left-0 w-72 border-r border-border bg-card p-6 shadow-lg',
+          isClosing ? 'animate-slide-out-left' : 'animate-slide-in-left'
+        )}
+      >
         <div className="mb-6 flex items-center justify-between">
           <span className="text-lg font-bold">メニュー</span>
-          <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
+          <Button variant="ghost" size="icon" onClick={handleClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -53,7 +85,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
                 key={item.href}
                 href={item.href}
                 className={cn('sidebar-item', isActive && 'sidebar-item-active')}
-                onClick={() => onOpenChange(false)}
+                onClick={handleClose}
               >
                 <Icon className="h-5 w-5" />
                 <span>{item.label}</span>
@@ -73,7 +105,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
                 key={league.code}
                 href={`/matches?league=${league.code}`}
                 className="sidebar-item"
-                onClick={() => onOpenChange(false)}
+                onClick={handleClose}
               >
                 <div className="flex h-6 w-6 items-center justify-center rounded bg-white p-0.5">
                   <Image

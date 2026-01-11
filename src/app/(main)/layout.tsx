@@ -15,7 +15,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       </Suspense>
 
       {/* Main content area */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col min-w-0">
         {/* Mobile Header */}
         <Header />
 

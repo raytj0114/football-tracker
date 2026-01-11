@@ -15,8 +15,8 @@ export function TransitionContent({ children, className }: TransitionContentProp
   return (
     <div
       className={cn(
-        'transition-opacity duration-200',
-        isPending && 'pointer-events-none opacity-50',
+        'transition-all duration-200 ease-out',
+        isPending && 'pointer-events-none scale-[0.99] opacity-60',
         className
       )}
       aria-busy={isPending}
