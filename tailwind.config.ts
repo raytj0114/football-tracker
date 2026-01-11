@@ -105,6 +105,32 @@ const config: Config = {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
         },
+        spin: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+        'progress-indeterminate': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(400%)' },
+        },
+        'progress-pulse': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.7' },
+        },
+        'heart-pop': {
+          '0%': { transform: 'scale(1)' },
+          '25%': { transform: 'scale(1.3)' },
+          '50%': { transform: 'scale(0.95)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        'slide-out-left': {
+          '0%': { transform: 'translateX(0)', opacity: '1' },
+          '100%': { transform: 'translateX(-100%)', opacity: '0' },
+        },
+        'fade-out': {
+          '0%': { opacity: '1' },
+          '100%': { opacity: '0' },
+        },
       },
       animation: {
         'pulse-live': 'pulse-live 2s ease-in-out infinite',
@@ -113,6 +139,12 @@ const config: Config = {
         'fade-in': 'fade-in 0.2s ease-out',
         'scale-in': 'scale-in 0.2s ease-out',
         shimmer: 'shimmer 2s infinite linear',
+        spin: 'spin 1s linear infinite',
+        'progress-indeterminate': 'progress-indeterminate 1.5s ease-in-out infinite',
+        'progress-pulse': 'progress-pulse 2s ease-in-out infinite',
+        'heart-pop': 'heart-pop 0.35s ease-out',
+        'slide-out-left': 'slide-out-left 0.3s ease-out forwards',
+        'fade-out': 'fade-out 0.2s ease-out forwards',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

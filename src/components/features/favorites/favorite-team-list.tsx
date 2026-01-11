@@ -71,7 +71,13 @@ export function FavoriteTeamList({ teams }: FavoriteTeamListProps) {
           className="gap-2"
           onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
         >
-          {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+          <span className="transition-transform duration-200">
+            {sortOrder === 'asc' ? (
+              <SortAsc className="h-4 w-4" />
+            ) : (
+              <SortDesc className="h-4 w-4" />
+            )}
+          </span>
           <span className="hidden sm:inline">{sortOrder === 'asc' ? 'A-Z' : 'Z-A'}</span>
         </Button>
 
