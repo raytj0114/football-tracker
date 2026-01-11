@@ -7,6 +7,7 @@ import {
   type ReactNode,
   type TransitionStartFunction,
 } from 'react';
+import { PageProgress } from '@/components/ui/page-progress';
 
 interface NavigationTransitionContextValue {
   isPending: boolean;
@@ -30,6 +31,7 @@ export function NavigationTransitionProvider({ children }: { children: ReactNode
 
   return (
     <NavigationTransitionContext.Provider value={{ isPending, startTransition }}>
+      <PageProgress isLoading={isPending} />
       {children}
     </NavigationTransitionContext.Provider>
   );

@@ -160,7 +160,7 @@
 
   /* Card hover effect */
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5;
+    @apply transition-all duration-200 ease-out hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5 active:scale-[0.98] active:shadow-sm;
   }
 
   /* Table row highlight */
@@ -178,11 +178,11 @@
 
   /* Sidebar */
   .sidebar-item {
-    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground;
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground transition-all duration-150 ease-out hover:bg-muted hover:text-foreground active:scale-[0.98];
   }
 
   .sidebar-item-active {
-    @apply bg-primary/10 text-primary hover:bg-primary/20;
+    @apply bg-primary/10 text-primary hover:bg-primary/20 border-l-2 border-primary -ml-0.5 pl-[10px];
   }
 
   /* Score display */
