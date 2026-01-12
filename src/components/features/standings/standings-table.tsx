@@ -1,15 +1,19 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Standing } from '@/types/football-api';
 import { cn } from '@/lib/utils';
 import { POSITION_ZONES, type LeagueCode } from '@/lib/football-api/constants';
+import { TeamCommentPopover } from './team-comment-popover';
 
 interface StandingsTableProps {
   standings: Standing[];
   leagueCode?: LeagueCode;
+  matchday?: number | null;
 }
 
-export function StandingsTable({ standings, leagueCode = 'PL' }: StandingsTableProps) {
+export function StandingsTable({ standings, leagueCode = 'PL', matchday }: StandingsTableProps) {
   const zones = POSITION_ZONES[leagueCode];
 
   const getPositionClass = (position: number) => {
@@ -77,23 +81,53 @@ export function StandingsTable({ standings, leagueCode = 'PL' }: StandingsTableP
                 </div>
               </td>
               <td className="px-2 sm:px-4 py-2 sm:py-3">
-                <Link
-                  href={`/teams/${standing.team.id}`}
-                  className="flex items-center gap-2 sm:gap-3 group"
-                >
-                  {standing.team.crest && (
-                    <Image
-                      src={standing.team.crest}
-                      alt={standing.team.name}
-                      width={24}
-                      height={24}
-                      className="h-5 w-5 sm:h-6 sm:w-6 object-contain flex-shrink-0"
-                    />
-                  )}
-                  <span className="font-medium group-hover:text-primary transition-colors truncate text-xs sm:text-sm max-w-[80px] sm:max-w-none">
-                    {standing.team.shortName || standing.team.name}
-                  </span>
-                </Link>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <Link
+                    href={`/teams/${standing.team.id}`}
+                    className="flex items-center gap-2 sm:gap-3 group min-w-0 flex-1"
+                  >
+                    {standing.team.crest && (
+                      <Image
+                        src={standing.team.crest}
+                        alt={standing.team.name}
+                        width={24}
+                        height={24}
+                        className="h-5 w-5 sm:h-6 sm:w-6 object-contain flex-shrink-0"
+                      />
+                    )}
+                    <span className="font-medium group-hover:text-primary transition-colors truncate text-xs sm:text-sm max-w-[80px] sm:max-w-none">
+                      {standing.team.shortName || standing.team.name}
+                    </span>
+                  </Link>
+                  <TeamCommentPopover
+                    teamData={{
+                      teamId: standing.team.id,
+                      teamName: standing.team.name,
+                      position: standing.position,
+                      playedGames: standing.playedGames,
+                      won: standing.won,
+                      draw: standing.draw,
+                      lost: standing.lost,
+                      points: standing.points,
+                      goalDifference: standing.goalDifference,
+                      leagueCode,
+                      matchday: matchday ?? null,
+                      // リーグ文脈データ
+                      leaderPoints: standings[0]?.points ?? 0,
+                      pointsFromLeader: (standings[0]?.points ?? 0) - standing.points,
+                      // CLの場合は24位（プレーオフ圏境界）、他リーグは降格圏の勝ち点
+                      relegationPoints:
+                        leagueCode === 'CL'
+                          ? (standings[23]?.points ?? 0)
+                          : (standings[standings.length - 3]?.points ?? 0),
+                      pointsFromRelegation:
+                        leagueCode === 'CL'
+                          ? standing.points - (standings[23]?.points ?? 0)
+                          : standing.points - (standings[standings.length - 3]?.points ?? 0),
+                      totalTeams: standings.length,
+                    }}
+                  />
+                </div>
               </td>
               <td className="px-1 sm:px-3 py-2 sm:py-3 text-center tabular-nums text-xs sm:text-sm">
                 {standing.playedGames}

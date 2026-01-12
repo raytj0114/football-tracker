@@ -3,6 +3,7 @@ import { z } from 'zod';
 const envSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
   GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),
+  GOOGLE_GEMINI_API_KEY: z.string().min(1, 'GOOGLE_GEMINI_API_KEY is required'),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -17,6 +18,7 @@ function getEnv(): Env {
     return {
       GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? '',
       GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? '',
+      GOOGLE_GEMINI_API_KEY: process.env.GOOGLE_GEMINI_API_KEY ?? '',
     } as Env;
   }
 
