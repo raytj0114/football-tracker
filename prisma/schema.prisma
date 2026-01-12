@@ -68,3 +68,14 @@ model FavoriteTeam {
   @@unique([userId, teamId])
   @@index([userId])
 }
+
+model TeamComment {
+  id        String   @id @default(cuid())
+  cacheKey  String   @unique // "leagueCode:teamId:matchday"
+  comment   String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cacheKey])
+}

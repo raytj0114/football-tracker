@@ -78,7 +78,11 @@ async function StandingsWrapper({ league }: { league: LeagueCode }) {
         </Card>
 
         {/* Standings Table */}
-        <StandingsTable standings={totalStandings.table} leagueCode={league} />
+        <StandingsTable
+          standings={totalStandings.table}
+          leagueCode={league}
+          matchday={data.season.currentMatchday}
+        />
       </div>
     );
   } catch (error) {
