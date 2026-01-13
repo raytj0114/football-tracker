@@ -81,19 +81,22 @@ async function getTeamMatchContext(leagueCode: string, teamId: number): Promise<
 }
 
 export async function generateTeamComment(
-  input: GenerateCommentInput
+  input: GenerateCommentInput,
+  skipCache: boolean = false
 ): Promise<GenerateCommentResult> {
   try {
     const validated = GenerateCommentSchema.parse(input);
     const cacheKey = `${validated.leagueCode}:${validated.teamId}:${validated.matchday ?? 0}`;
 
-    // Check cache
-    const cached = await prisma.teamComment.findUnique({
-      where: { cacheKey },
-    });
+    // Check cache (unless skipCache is true)
+    if (!skipCache) {
+      const cached = await prisma.teamComment.findUnique({
+        where: { cacheKey },
+      });
 
-    if (cached && cached.expiresAt > new Date()) {
-      return { success: true, comment: cached.comment };
+      if (cached && cached.expiresAt > new Date()) {
+        return { success: true, comment: cached.comment };
+      }
     }
 
     // 試合データを取得
@@ -146,8 +149,6 @@ export async function generateTeamComment(
 function buildPrompt(data: GenerateCommentInput, matchContext: MatchContext): string {
   const positionZone = getPositionZone(data.position, data.leagueCode);
   const winRate = data.playedGames > 0 ? ((data.won / data.playedGames) * 100).toFixed(0) : '0';
-  const drawRate = data.playedGames > 0 ? ((data.draw / data.playedGames) * 100).toFixed(0) : '0';
-  const lossRate = data.playedGames > 0 ? ((data.lost / data.playedGames) * 100).toFixed(0) : '0';
   const avgPointsPerGame = data.playedGames > 0 ? (data.points / data.playedGames).toFixed(2) : '0';
 
   const recentResultsLine = matchContext.recentResults
@@ -157,34 +158,25 @@ function buildPrompt(data: GenerateCommentInput, matchContext: MatchContext): st
     ? `- 次の対戦: vs ${matchContext.nextOpponent}`
     : '';
 
-  return `以下のサッカーチームの成績データから読み取れる推察やコメントを、敬語で述べてください。
+  return `あなたは中立的なプロのサッカー解説者です。
+以下の【チームデータ】に基づき、客観的な分析コメントを生成してください。
 
-【チーム情報】
-- チーム名: ${data.teamName}
-- リーグ: ${getLeagueName(data.leagueCode)}
-- 現在順位: ${data.position}位/${data.totalTeams}チーム中 ${positionZone}
-- 消化試合数: ${data.playedGames}試合（第${data.matchday ?? '?'}節時点）
-
-【成績データ】
-- 勝敗: ${data.won}勝 ${data.draw}分 ${data.lost}敗
-- 勝率: ${winRate}% / 引分率: ${drawRate}% / 敗率: ${lossRate}%
-- 勝ち点: ${data.points}点（1試合平均: ${avgPointsPerGame}点）
-- 得失点差: ${data.goalDifference > 0 ? '+' : ''}${data.goalDifference}
-
-【リーグでの立ち位置】
-- 首位との勝ち点差: ${data.pointsFromLeader}点（首位: ${data.leaderPoints}点）
-- 降格圏との勝ち点差: +${data.pointsFromRelegation}点（降格圏: ${data.relegationPoints}点）
-${recentResultsLine}
-${nextOpponentLine}
-
-【コメント要件】
-- 2〜3文、120〜180文字程度で、必ず文を完結させる
-- 敬語（です・ます調）で、サッカーファンに話しかけるような自然な文章
-- チームの現状、調子、順位争いの状況を簡潔にコメント
+【必須ルール】
+- 2〜3文、120〜180文字程度で完結させる
+- 敬語（です・ます調）で自然に
+- チーム名に「様」などの敬称をつけない
+- 「祈ります」「応援」などファン目線の表現は使わない
 - 絵文字は使用しない
 
-【出力形式】
-コメントのみを出力してください。`;
+【チームデータ】
+- チーム: ${data.teamName}（${getLeagueName(data.leagueCode)}）
+- 順位: ${data.position}位/${data.totalTeams}チーム中 ${positionZone}
+- 第${data.matchday ?? '?'}節時点: ${data.won}勝${data.draw}分${data.lost}敗（勝率${winRate}%）
+- 勝ち点: ${data.points}点（1試合平均${avgPointsPerGame}点）
+- 得失点差: ${data.goalDifference > 0 ? '+' : ''}${data.goalDifference}
+- 首位との差: ${data.pointsFromLeader}点 / 降格圏との差: +${data.pointsFromRelegation}点
+${recentResultsLine}
+${nextOpponentLine}`;
 }
 
 function getLeagueName(code: string): string {
@@ -249,8 +241,6 @@ function getCLPositionZone(position: number): string {
 function buildCLPrompt(data: GenerateCommentInput, matchContext: MatchContext): string {
   const positionZone = getCLPositionZone(data.position);
   const winRate = data.playedGames > 0 ? ((data.won / data.playedGames) * 100).toFixed(0) : '0';
-  const drawRate = data.playedGames > 0 ? ((data.draw / data.playedGames) * 100).toFixed(0) : '0';
-  const lossRate = data.playedGames > 0 ? ((data.lost / data.playedGames) * 100).toFixed(0) : '0';
   const avgPointsPerGame = data.playedGames > 0 ? (data.points / data.playedGames).toFixed(2) : '0';
 
   const recentResultsLine = matchContext.recentResults
@@ -264,39 +254,27 @@ function buildCLPrompt(data: GenerateCommentInput, matchContext: MatchContext): 
   // relegationPoints には 24位の勝ち点が渡される想定
   const playoffBorderPoints = data.relegationPoints;
 
-  return `以下のUEFAチャンピオンズリーグ（CL）のチーム成績データから読み取れる推察やコメントを、敬語で述べてください。
+  return `あなたは中立的なプロのサッカー解説者です。
+以下の【チームデータ】に基づき、客観的な分析コメントを生成してください。
 
-【大会フォーマット】
-2024-25シーズンのCLは36チームによるリーグフェーズ形式です。
-- 各チームは8試合（ホーム4試合、アウェイ4試合）を戦います
-- 上位8チーム: ラウンド16に直接進出
-- 9〜24位: プレーオフラウンド進出（2試合制で勝者がラウンド16へ）
-- 25位以下: 敗退
-
-【チーム情報】
-- チーム名: ${data.teamName}
-- 現在順位: ${data.position}位/${data.totalTeams}チーム中 ${positionZone}
-- 消化試合数: ${data.playedGames}試合（全8試合中）
-
-【成績データ】
-- 勝敗: ${data.won}勝 ${data.draw}分 ${data.lost}敗
-- 勝率: ${winRate}% / 引分率: ${drawRate}% / 敗率: ${lossRate}%
-- 勝ち点: ${data.points}点（1試合平均: ${avgPointsPerGame}点）
-- 得失点差: ${data.goalDifference > 0 ? '+' : ''}${data.goalDifference}
-
-【リーグフェーズでの立ち位置】
-- 首位との勝ち点差: ${data.pointsFromLeader}点（首位: ${data.leaderPoints}点）
-- プレーオフ圏境界（24位）の勝ち点: ${playoffBorderPoints}点
-${recentResultsLine}
-${nextOpponentLine}
-
-【コメント要件】
-- 2〜3文、120〜180文字程度で、必ず文を完結させる
-- 敬語（です・ます調）で、サッカーファンに話しかけるような自然な文章
-- ラウンド16直接進出、プレーオフ進出、敗退の観点でコメント
-- 「降格」という表現は使わない（CLに降格の概念はありません）
+【必須ルール】
+- 2〜3文、120〜180文字程度で完結させる
+- 敬語（です・ます調）で自然に
+- チーム名に「様」などの敬称をつけない
+- 「祈ります」「応援」などファン目線の表現は使わない
+- 「降格」という表現は使わない（CLに降格の概念はない）
 - 絵文字は使用しない
 
-【出力形式】
-コメントのみを出力してください。`;
+【大会形式】
+CLリーグフェーズ: 1〜8位→R16直接進出、9〜24位→プレーオフ、25位以下→敗退
+
+【チームデータ】
+- チーム: ${data.teamName}（UEFAチャンピオンズリーグ）
+- 順位: ${data.position}位/${data.totalTeams}チーム中 ${positionZone}
+- ${data.playedGames}/8試合消化: ${data.won}勝${data.draw}分${data.lost}敗（勝率${winRate}%）
+- 勝ち点: ${data.points}点（1試合平均${avgPointsPerGame}点）
+- 得失点差: ${data.goalDifference > 0 ? '+' : ''}${data.goalDifference}
+- 首位との差: ${data.pointsFromLeader}点 / PO圏境界(24位): ${playoffBorderPoints}点
+${recentResultsLine}
+${nextOpponentLine}`;
 }

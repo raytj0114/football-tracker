@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, RefreshCw } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { generateTeamComment, type GenerateCommentInput } from '@/app/actions/team-comment';
@@ -38,6 +38,19 @@ export function TeamCommentPopover({ teamData }: TeamCommentPopoverProps) {
     }
   };
 
+  const handleRegenerate = () => {
+    setComment(null);
+    setError(null);
+    startTransition(async () => {
+      const result = await generateTeamComment(teamData, true); // skipCache: true
+      if (result.success) {
+        setComment(result.comment);
+      } else {
+        setError(result.error);
+      }
+    });
+  };
+
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
@@ -67,9 +80,43 @@ export function TeamCommentPopover({ teamData }: TeamCommentPopoverProps) {
               <span className="text-sm text-muted-foreground">生成中...</span>
             </div>
           ) : error ? (
-            <p className="text-sm text-destructive">{error}</p>
+            <div className="space-y-3">
+              <p className="text-sm text-destructive">{error}</p>
+              <button
+                type="button"
+                onClick={handleRegenerate}
+                disabled={isPending}
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5',
+                  'text-xs font-medium text-muted-foreground',
+                  'bg-muted/50 hover:bg-muted hover:text-foreground',
+                  'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  'disabled:pointer-events-none disabled:opacity-50'
+                )}
+              >
+                <RefreshCw className="h-3 w-3" />
+                再試行
+              </button>
+            </div>
           ) : comment ? (
-            <p className="text-sm leading-relaxed">{comment}</p>
+            <div className="space-y-3">
+              <p className="text-sm leading-relaxed">{comment}</p>
+              <button
+                type="button"
+                onClick={handleRegenerate}
+                disabled={isPending}
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5',
+                  'text-xs font-medium text-muted-foreground',
+                  'bg-muted/50 hover:bg-muted hover:text-foreground',
+                  'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  'disabled:pointer-events-none disabled:opacity-50'
+                )}
+              >
+                <RefreshCw className="h-3 w-3" />
+                再生成
+              </button>
+            </div>
           ) : null}
         </div>
       </PopoverContent>
