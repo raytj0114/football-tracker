@@ -3,12 +3,14 @@ import Link from 'next/link';
 import type { Match, MatchTeam } from '@/types/football-api';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { formatDateTime } from '@/lib/utils';
+import { formatDateTime, formatTime } from '@/lib/utils';
 import { getMatchStatusLabel, getMatchStatusVariant } from '@/lib/football-api/constants';
 import { cn } from '@/lib/utils';
 
 interface MatchCardProps {
   match: Match;
+  /** グループヘッダーで日付を表示している場合はfalseにして時刻のみ表示 */
+  showDateInHeader?: boolean;
 }
 
 function TeamRow({
@@ -78,7 +80,7 @@ function TeamRow({
   );
 }
 
-export function MatchCard({ match }: MatchCardProps) {
+export function MatchCard({ match, showDateInHeader = true }: MatchCardProps) {
   const { homeTeam, awayTeam, score, status, utcDate } = match;
   const isFinished = status === 'FINISHED';
   const isLive = status === 'IN_PLAY' || status === 'PAUSED';
@@ -95,12 +97,15 @@ export function MatchCard({ match }: MatchCardProps) {
     score.fullTime.away !== null &&
     score.fullTime.away > score.fullTime.home;
 
+  // グループヘッダーに日付がある場合は時刻のみ、なければ日時全体を表示
+  const displayTime = showDateInHeader ? formatDateTime(utcDate) : formatTime(utcDate);
+
   return (
     <Card className={cn('overflow-hidden card-hover', isLive && 'ring-2 ring-live/50')}>
       <div className="p-4">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">{formatDateTime(utcDate)}</span>
+          <span className="text-xs text-muted-foreground">{displayTime}</span>
           <Badge variant={getMatchStatusVariant(status)}>
             {isLive && <span className="mr-1.5 h-2 w-2 rounded-full bg-white animate-pulse-live" />}
             {getMatchStatusLabel(status)}

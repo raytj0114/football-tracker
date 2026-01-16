@@ -36,7 +36,7 @@ export function LeagueSelector({ basePath }: LeagueSelectorProps) {
     <Tabs value={optimisticLeague} onValueChange={handleLeagueChange} className="w-full">
       <TabsList
         className={cn(
-          'h-auto w-full flex-wrap gap-1 bg-transparent p-0',
+          'h-auto w-full grid grid-cols-3 sm:grid-cols-6 gap-1 bg-muted/50 p-1 rounded-lg',
           'transition-opacity duration-150',
           isPending && 'opacity-70'
         )}
@@ -48,11 +48,13 @@ export function LeagueSelector({ basePath }: LeagueSelectorProps) {
             disabled={isPending}
             className={cn(
               'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground',
+              'data-[state=active]:shadow-sm',
               'transition-all duration-150',
+              'flex-col sm:flex-row gap-1 sm:gap-1.5 py-2 sm:py-1.5',
               isPending && 'cursor-wait'
             )}
           >
-            <div className="mr-1.5 flex h-5 w-5 items-center justify-center rounded bg-white p-0.5">
+            <div className="flex h-5 w-5 items-center justify-center rounded bg-white p-0.5">
               <Image
                 src={league.emblem}
                 alt={league.name}
@@ -61,8 +63,8 @@ export function LeagueSelector({ basePath }: LeagueSelectorProps) {
                 className="h-4 w-4 object-contain"
               />
             </div>
-            <span className="hidden sm:inline">{league.name}</span>
-            <span className="sm:hidden">{league.code}</span>
+            <span className="hidden sm:inline text-xs">{league.name}</span>
+            <span className="sm:hidden text-[10px]">{league.code}</span>
           </TabsTrigger>
         ))}
       </TabsList>

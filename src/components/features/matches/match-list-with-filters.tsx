@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Calendar, List } from 'lucide-react';
+import { Calendar, List, LayoutGrid, Rows3 } from 'lucide-react';
 import type { Match } from '@/types/football-api';
 import { MatchList } from './match-list';
 import { MatchFilters } from './match-filters';
@@ -14,6 +14,7 @@ import {
   useCalendarFilters,
   useFilteredMatchesForList,
   useFilteredMatchesForCalendar,
+  useViewDensity,
 } from '@/hooks/use-match-filters';
 
 type ViewMode = 'list' | 'calendar';
@@ -33,6 +34,9 @@ export function MatchListWithFilters({
 }: MatchListWithFiltersProps) {
   // View mode
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+
+  // View density (compact/detailed)
+  const { density, setDensity, isHydrated } = useViewDensity();
 
   // Extract data from matches
   const { matchdays, matchdayCounts, teams, leagueFavoriteTeamIds } = useMatchData(
@@ -94,26 +98,55 @@ export function MatchListWithFilters({
 
   return (
     <div className="space-y-6">
-      {/* View Mode Toggle */}
-      <div className="flex items-center gap-2 p-1 bg-muted rounded-lg w-fit">
-        <Button
-          variant={viewMode === 'list' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setViewMode('list')}
-          className={cn('gap-2', viewMode !== 'list' && 'hover:bg-transparent')}
-        >
-          <List className="h-4 w-4" />
-          <span>リスト</span>
-        </Button>
-        <Button
-          variant={viewMode === 'calendar' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setViewMode('calendar')}
-          className={cn('gap-2', viewMode !== 'calendar' && 'hover:bg-transparent')}
-        >
-          <Calendar className="h-4 w-4" />
-          <span>カレンダー</span>
-        </Button>
+      {/* View Mode & Density Toggle */}
+      <div className="flex items-center gap-4 flex-wrap">
+        {/* View Mode Toggle */}
+        <div className="flex items-center gap-2 p-1 bg-muted rounded-lg w-fit">
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+            className={cn('gap-2', viewMode !== 'list' && 'hover:bg-transparent')}
+          >
+            <List className="h-4 w-4" />
+            <span>リスト</span>
+          </Button>
+          <Button
+            variant={viewMode === 'calendar' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('calendar')}
+            className={cn('gap-2', viewMode !== 'calendar' && 'hover:bg-transparent')}
+          >
+            <Calendar className="h-4 w-4" />
+            <span>カレンダー</span>
+          </Button>
+        </div>
+
+        {/* Density Toggle (only show in list mode after hydration) */}
+        {viewMode === 'list' && isHydrated && (
+          <div className="flex items-center gap-2 p-1 bg-muted rounded-lg w-fit">
+            <Button
+              variant={density === 'detailed' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setDensity('detailed')}
+              className={cn('gap-2', density !== 'detailed' && 'hover:bg-transparent')}
+              title="詳細表示"
+            >
+              <LayoutGrid className="h-4 w-4" />
+              <span className="hidden sm:inline">詳細</span>
+            </Button>
+            <Button
+              variant={density === 'compact' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setDensity('compact')}
+              className={cn('gap-2', density !== 'compact' && 'hover:bg-transparent')}
+              title="コンパクト表示"
+            >
+              <Rows3 className="h-4 w-4" />
+              <span className="hidden sm:inline">コンパクト</span>
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* List View */}
@@ -139,7 +172,7 @@ export function MatchListWithFilters({
             </p>
           )}
 
-          <MatchList matches={filteredMatchesForList} />
+          <MatchList matches={filteredMatchesForList} density={density} />
         </>
       )}
 

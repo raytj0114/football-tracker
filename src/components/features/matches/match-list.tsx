@@ -1,7 +1,10 @@
 import type { Match } from '@/types/football-api';
+import type { ViewDensity } from '@/hooks/use-match-filters';
 import { MatchCard } from './match-card';
-import { formatDate } from '@/lib/utils';
+import { MatchCardCompact } from './match-card-compact';
+import { formatDate, formatRelativeDateWithWeekday } from '@/lib/utils';
 import { Calendar } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type GroupBy = 'date' | 'matchday';
 
@@ -9,9 +12,16 @@ interface MatchListProps {
   matches: Match[];
   groupBy?: GroupBy;
   currentMatchday?: number | null;
+  /** 表示密度: 'detailed'（従来のカード）または 'compact'（1行表示） */
+  density?: ViewDensity;
 }
 
-export function MatchList({ matches, groupBy = 'date', currentMatchday = null }: MatchListProps) {
+export function MatchList({
+  matches,
+  groupBy = 'date',
+  currentMatchday = null,
+  density = 'detailed',
+}: MatchListProps) {
   if (matches.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border p-12 text-center">
@@ -32,6 +42,11 @@ export function MatchList({ matches, groupBy = 'date', currentMatchday = null }:
       ? groupByMatchday(otherMatches, currentMatchday)
       : groupByDate(otherMatches);
 
+  const isCompact = density === 'compact';
+
+  // Grid classes: compact mode uses single column for 1-line cards
+  const gridClasses = cn('grid gap-4', isCompact ? 'grid-cols-1' : 'md:grid-cols-2');
+
   return (
     <div className="space-y-8">
       {/* Live Matches Section */}
@@ -44,10 +59,14 @@ export function MatchList({ matches, groupBy = 'date', currentMatchday = null }:
             </span>
             <h3 className="text-lg font-semibold text-live">ライブ</h3>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {liveMatches.map((match) => (
-              <MatchCard key={match.id} match={match} />
-            ))}
+          <div className={gridClasses}>
+            {liveMatches.map((match) =>
+              isCompact ? (
+                <MatchCardCompact key={match.id} match={match} />
+              ) : (
+                <MatchCard key={match.id} match={match} showDateInHeader={false} />
+              )
+            )}
           </div>
         </div>
       )}
@@ -56,10 +75,14 @@ export function MatchList({ matches, groupBy = 'date', currentMatchday = null }:
       {groupedMatches.map(({ key, label, matches: groupMatches }) => (
         <div key={key}>
           <h3 className="mb-4 text-base font-semibold text-muted-foreground">{label}</h3>
-          <div className="grid gap-4 md:grid-cols-2">
-            {groupMatches.map((match) => (
-              <MatchCard key={match.id} match={match} />
-            ))}
+          <div className={gridClasses}>
+            {groupMatches.map((match) =>
+              isCompact ? (
+                <MatchCardCompact key={match.id} match={match} />
+              ) : (
+                <MatchCard key={match.id} match={match} showDateInHeader={false} />
+              )
+            )}
           </div>
         </div>
       ))}
@@ -83,7 +106,7 @@ function groupByDate(matches: Match[]): Array<{ key: string; label: string; matc
     .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
     .map(([date, dateMatches]) => ({
       key: date,
-      label: formatDate(date),
+      label: formatRelativeDateWithWeekday(date),
       matches: dateMatches,
     }));
 }

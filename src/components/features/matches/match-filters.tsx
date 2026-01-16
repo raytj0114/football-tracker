@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import Image from 'next/image';
-import { Users, Heart, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Users, Heart, ChevronLeft, ChevronRight, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -113,21 +113,29 @@ export function MatchFilters({
     return `${selectedTeamIds.length}チーム`;
   };
 
+  // Check if we're viewing a different matchday than current
+  const isViewingDifferentMatchday =
+    selectedMatchday !== null && currentMatchday !== null && selectedMatchday !== currentMatchday;
+
+  // Calculate progress percentage
+  const progressPercent =
+    sortedMatchdays.length > 1 ? (currentIndex / (sortedMatchdays.length - 1)) * 100 : 100;
+
   return (
-    <div className="space-y-4">
+    <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-4">
       {/* Matchday Navigation */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-2 sm:gap-4">
         <Button
           variant="outline"
           size="icon"
           onClick={handlePrevMatchday}
           disabled={!hasPrev}
-          className="h-9 w-9"
+          className="h-10 w-10 sm:h-12 sm:w-12 min-w-10 sm:min-w-12"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-5 w-5" />
         </Button>
 
-        <div className="flex-1 text-center">
+        <div className="flex-1 text-center min-w-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2 text-lg font-semibold">
@@ -169,11 +177,21 @@ export function MatchFilters({
               })}
             </DropdownMenuContent>
           </DropdownMenu>
-          {matchdayInfo && (
-            <p className="text-xs text-muted-foreground">
-              {matchdayInfo.finished}/{matchdayInfo.total} 試合終了
-            </p>
-          )}
+
+          {/* Progress bar */}
+          <div className="w-full max-w-xs mx-auto mt-2">
+            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            {matchdayInfo && (
+              <p className="text-xs text-muted-foreground text-center mt-1">
+                {matchdayInfo.finished}/{matchdayInfo.total} 試合終了
+              </p>
+            )}
+          </div>
         </div>
 
         <Button
@@ -181,17 +199,52 @@ export function MatchFilters({
           size="icon"
           onClick={handleNextMatchday}
           disabled={!hasNext}
-          className="h-9 w-9"
+          className="h-10 w-10 sm:h-12 sm:w-12 min-w-10 sm:min-w-12"
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-5 w-5" />
         </Button>
       </div>
 
+      {/* Return to current matchday button */}
+      {isViewingDifferentMatchday && (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onMatchdayChange(null)}
+            className="text-primary hover:text-primary gap-1"
+          >
+            <RotateCcw className="h-3 w-3" />
+            今節に戻る
+          </Button>
+        </div>
+      )}
+
       {/* Team Filter */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+        {/* Favorites Toggle Button (standalone) */}
+        {favoriteTeamIds.length > 0 && (
+          <Button
+            variant={includeFavorites ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => onFavoritesFilterChange(!includeFavorites)}
+            className={cn('gap-2', includeFavorites && 'bg-destructive hover:bg-destructive/90')}
+          >
+            <Heart className={cn('h-4 w-4', includeFavorites && 'fill-current')} />
+            <span className="hidden sm:inline">お気に入り</span>
+            <Badge variant={includeFavorites ? 'secondary' : 'outline'} className="ml-1">
+              {favoriteTeamIds.length}
+            </Badge>
+          </Button>
+        )}
+        {/* Team Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant={hasTeamFilter ? 'default' : 'outline'} size="sm" className="gap-2">
+            <Button
+              variant={selectedTeamIds.length > 0 ? 'default' : 'outline'}
+              size="sm"
+              className="gap-2"
+            >
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">チーム:</span>
               <span className="max-w-[120px] truncate">{getTeamFilterLabel()}</span>
@@ -200,26 +253,6 @@ export function MatchFilters({
           <DropdownMenuContent align="start" className="w-72">
             <DropdownMenuLabel>チームフィルタ（複数選択可）</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {favoriteTeamIds.length > 0 && (
-              <>
-                <DropdownMenuItem
-                  onClick={() => onFavoritesFilterChange(!includeFavorites)}
-                  className={includeFavorites ? 'bg-accent' : ''}
-                >
-                  <Heart
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      includeFavorites ? 'text-destructive fill-destructive' : 'text-destructive'
-                    )}
-                  />
-                  <span className="flex-1">お気に入りチーム</span>
-                  <Badge variant="secondary" className="ml-2">
-                    {favoriteTeamIds.length}
-                  </Badge>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
             <div className="max-h-56 overflow-y-auto">
               {teams.map((team) => {
                 const isSelected = selectedTeamIds.includes(team.id);

@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import type { Match } from '@/types/football-api';
 import type { TeamOption } from '@/components/features/matches/match-filters';
 
 // ============================================
 // Types
 // ============================================
+
+export type ViewDensity = 'compact' | 'detailed';
 
 export interface MatchdayCounts {
   total: number;
@@ -264,4 +266,35 @@ export function useFilteredMatchesForCalendar(
 
     return result.sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime());
   }, [matches, selectedDate, calendarFilterTeamIds]);
+}
+
+// ============================================
+// useViewDensity - View density toggle with localStorage persistence
+// ============================================
+
+const VIEW_DENSITY_STORAGE_KEY = 'matchViewDensity';
+
+export function useViewDensity(): {
+  density: ViewDensity;
+  setDensity: (density: ViewDensity) => void;
+  isHydrated: boolean;
+} {
+  const [density, setDensityState] = useState<ViewDensity>('detailed');
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(VIEW_DENSITY_STORAGE_KEY);
+    if (stored === 'compact' || stored === 'detailed') {
+      setDensityState(stored);
+    }
+    setIsHydrated(true);
+  }, []);
+
+  const setDensity = useCallback((newDensity: ViewDensity) => {
+    setDensityState(newDensity);
+    localStorage.setItem(VIEW_DENSITY_STORAGE_KEY, newDensity);
+  }, []);
+
+  return { density, setDensity, isHydrated };
 }
