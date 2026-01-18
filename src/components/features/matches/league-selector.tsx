@@ -3,9 +3,10 @@
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useOptimistic } from 'react';
-import { AVAILABLE_LEAGUES, DEFAULT_LEAGUE } from '@/lib/football-api/constants';
+import { AVAILABLE_LEAGUES, type LeagueCode } from '@/lib/football-api/constants';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigationTransition } from '@/hooks/use-navigation-transition';
+import { useLeagueState } from '@/hooks/use-league-state';
 import { cn } from '@/lib/utils';
 
 interface LeagueSelectorProps {
@@ -16,7 +17,7 @@ export function LeagueSelector({ basePath }: LeagueSelectorProps) {
   const searchParams = useSearchParams();
   const { isPending, startTransition } = useNavigationTransition();
   const router = useRouter();
-  const currentLeague = searchParams.get('league') ?? DEFAULT_LEAGUE;
+  const { league: currentLeague, setLeague } = useLeagueState();
 
   const [optimisticLeague, setOptimisticLeague] = useOptimistic(currentLeague);
 
@@ -26,8 +27,11 @@ export function LeagueSelector({ basePath }: LeagueSelectorProps) {
     const params = new URLSearchParams(searchParams.toString());
     params.set('league', code);
 
+    // Persist to sessionStorage
+    setLeague(code as LeagueCode);
+
     startTransition(() => {
-      setOptimisticLeague(code);
+      setOptimisticLeague(code as LeagueCode);
       router.push(`${basePath}?${params.toString()}`);
     });
   };

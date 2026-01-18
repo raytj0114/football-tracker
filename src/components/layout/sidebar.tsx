@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -7,7 +8,6 @@ import { Calendar, Trophy, Heart, ChevronLeft, ChevronRight, Home, Star } from '
 import { cn } from '@/lib/utils';
 import { AVAILABLE_LEAGUES } from '@/lib/football-api/constants';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
 
 interface SidebarProps {
   className?: string;
@@ -23,6 +23,14 @@ export function Sidebar({ className }: SidebarProps) {
     { href: '/standings', label: '順位表', icon: Trophy },
     { href: '/favorites', label: 'お気に入り', icon: Heart },
   ];
+
+  // Determine the base path for league links based on current page
+  const leagueLinkBasePath = useMemo(() => {
+    if (pathname.startsWith('/standings')) {
+      return '/standings';
+    }
+    return '/matches';
+  }, [pathname]);
 
   return (
     <aside
@@ -88,7 +96,7 @@ export function Sidebar({ className }: SidebarProps) {
               {AVAILABLE_LEAGUES.map((league) => (
                 <Link
                   key={league.code}
-                  href={`/matches?league=${league.code}`}
+                  href={`${leagueLinkBasePath}?league=${league.code}`}
                   className="sidebar-item"
                 >
                   <div className="flex h-6 w-6 items-center justify-center rounded bg-white p-0.5">
@@ -112,7 +120,7 @@ export function Sidebar({ className }: SidebarProps) {
             {AVAILABLE_LEAGUES.map((league) => (
               <Link
                 key={league.code}
-                href={`/matches?league=${league.code}`}
+                href={`${leagueLinkBasePath}?league=${league.code}`}
                 className="sidebar-item justify-center px-2"
                 title={league.name}
               >

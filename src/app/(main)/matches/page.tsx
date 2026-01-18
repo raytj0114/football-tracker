@@ -12,6 +12,7 @@ import {
 } from '@/lib/football-api/constants';
 import { MatchListWithFilters } from '@/components/features/matches/match-list-with-filters';
 import { LeagueSelector } from '@/components/features/matches/league-selector';
+import { LeagueRedirect } from '@/components/features/matches/league-redirect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { RateLimitError } from '@/components/ui/rate-limit-error';
@@ -45,6 +46,15 @@ async function MatchListWrapper({ league }: { league: LeagueCode }) {
     ]);
     const leagueInfo = AVAILABLE_LEAGUES.find((l) => l.code === league);
     const currentMatchday = standingsData.season.currentMatchday;
+
+    // Build team position map from standings
+    const totalStandings = standingsData.standings.find((s) => s.type === 'TOTAL');
+    const teamPositionMap = new Map<number, number>();
+    if (totalStandings) {
+      for (const standing of totalStandings.table) {
+        teamPositionMap.set(standing.team.id, standing.position);
+      }
+    }
 
     // Fetch favorite team IDs if user is logged in
     let favoriteTeamIds: number[] = [];
@@ -86,6 +96,7 @@ async function MatchListWrapper({ league }: { league: LeagueCode }) {
           favoriteTeamIds={favoriteTeamIds}
           currentMatchday={currentMatchday}
           leagueCode={league}
+          teamPositionMap={teamPositionMap}
         />
       </div>
     );
@@ -112,6 +123,11 @@ export default async function MatchesPage({ searchParams }: Props) {
           <h1 className="text-2xl font-bold">試合一覧</h1>
         </div>
       </div>
+
+      {/* League Redirect (handles sessionStorage-based navigation) */}
+      <Suspense fallback={null}>
+        <LeagueRedirect basePath="/matches" />
+      </Suspense>
 
       {/* League Selector */}
       <div className="mb-8">

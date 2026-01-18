@@ -4,13 +4,62 @@ import Image from 'next/image';
 import { Trophy } from 'lucide-react';
 import { footballAPI, FootballAPIError } from '@/lib/football-api/client';
 import { validateLeagueCode, type LeagueCode } from '@/lib/football-api/constants';
-import { StandingsTable } from '@/components/features/standings/standings-table';
+import type { Match } from '@/types/football-api';
+import {
+  StandingsTable,
+  type NextMatchInfo,
+} from '@/components/features/standings/standings-table';
 import { LeagueSelector } from '@/components/features/matches/league-selector';
+import { LeagueRedirect } from '@/components/features/matches/league-redirect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RateLimitError } from '@/components/ui/rate-limit-error';
 import { TransitionContent } from '@/components/ui/transition-content';
+
+/**
+ * Build a map of teamId → next scheduled match
+ */
+function buildNextMatchMap(matches: Match[]): Map<number, NextMatchInfo> {
+  const map = new Map<number, NextMatchInfo>();
+
+  // Sort matches by date (earliest first)
+  const sortedMatches = [...matches].sort(
+    (a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime()
+  );
+
+  for (const match of sortedMatches) {
+    // Only process if we have valid team IDs
+    const homeId = match.homeTeam.id;
+    const awayId = match.awayTeam.id;
+
+    // Set for home team if not already set
+    if (homeId !== null && !map.has(homeId)) {
+      map.set(homeId, {
+        matchId: match.id,
+        utcDate: match.utcDate,
+        opponentId: awayId,
+        opponentName: match.awayTeam.shortName || match.awayTeam.name || 'TBD',
+        opponentCrest: match.awayTeam.crest,
+        isHome: true,
+      });
+    }
+
+    // Set for away team if not already set
+    if (awayId !== null && !map.has(awayId)) {
+      map.set(awayId, {
+        matchId: match.id,
+        utcDate: match.utcDate,
+        opponentId: homeId,
+        opponentName: match.homeTeam.shortName || match.homeTeam.name || 'TBD',
+        opponentCrest: match.homeTeam.crest,
+        isHome: false,
+      });
+    }
+  }
+
+  return map;
+}
 
 export const metadata: Metadata = {
   title: '順位表 | Football Tracker (ベータ版)',
@@ -35,8 +84,14 @@ function StandingsTableSkeleton() {
 
 async function StandingsWrapper({ league }: { league: LeagueCode }) {
   try {
-    const data = await footballAPI.getStandings(league);
+    // Fetch standings and scheduled matches in parallel
+    const [data, matchesData] = await Promise.all([
+      footballAPI.getStandings(league),
+      footballAPI.getMatches(league, { status: 'SCHEDULED' }),
+    ]);
+
     const totalStandings = data.standings.find((s) => s.type === 'TOTAL');
+    const nextMatchMap = buildNextMatchMap(matchesData.matches);
 
     if (!totalStandings) {
       return (
@@ -82,6 +137,7 @@ async function StandingsWrapper({ league }: { league: LeagueCode }) {
           standings={totalStandings.table}
           leagueCode={league}
           matchday={data.season.currentMatchday}
+          nextMatchMap={nextMatchMap}
         />
       </div>
     );
@@ -108,6 +164,11 @@ export default async function StandingsPage({ searchParams }: Props) {
           <h1 className="text-2xl font-bold">順位表</h1>
         </div>
       </div>
+
+      {/* League Redirect (handles sessionStorage-based navigation) */}
+      <Suspense fallback={null}>
+        <LeagueRedirect basePath="/standings" />
+      </Suspense>
 
       {/* League Selector */}
       <div className="mb-8">

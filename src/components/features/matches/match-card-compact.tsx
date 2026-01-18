@@ -10,6 +10,10 @@ import { cn } from '@/lib/utils';
 
 interface MatchCardCompactProps {
   match: Match;
+  /** ホームチームの順位 */
+  homePosition?: number;
+  /** アウェイチームの順位 */
+  awayPosition?: number;
 }
 
 function TeamDisplay({
@@ -17,11 +21,13 @@ function TeamDisplay({
   isWinner,
   isFinished,
   isHome,
+  position,
 }: {
   team: MatchTeam;
   isWinner: boolean;
   isFinished: boolean;
   isHome: boolean;
+  position?: number;
 }) {
   const teamName = team.shortName || team.name || 'TBD';
   const isTBD = team.id === null;
@@ -45,16 +51,23 @@ function TeamDisplay({
           </span>
         </div>
       )}
-      <span
-        className={cn(
-          'text-sm font-medium truncate transition-colors',
-          !isTBD && 'group-hover:text-primary',
-          isTBD && 'text-muted-foreground',
-          isFinished && isWinner && 'text-win'
+      <div className={cn('flex items-center gap-1.5 min-w-0', !isHome && 'flex-row-reverse')}>
+        {position !== undefined && (
+          <span className="text-[10px] text-muted-foreground tabular-nums flex-shrink-0">
+            {position}位
+          </span>
         )}
-      >
-        {teamName}
-      </span>
+        <span
+          className={cn(
+            'text-sm font-medium truncate transition-colors',
+            !isTBD && 'group-hover:text-primary',
+            isTBD && 'text-muted-foreground',
+            isFinished && isWinner && 'text-win'
+          )}
+        >
+          {teamName}
+        </span>
+      </div>
     </div>
   );
 
@@ -69,7 +82,7 @@ function TeamDisplay({
   );
 }
 
-export function MatchCardCompact({ match }: MatchCardCompactProps) {
+export function MatchCardCompact({ match, homePosition, awayPosition }: MatchCardCompactProps) {
   const { homeTeam, awayTeam, score, status, utcDate } = match;
   const isFinished = status === 'FINISHED';
   const isLive = status === 'IN_PLAY' || status === 'PAUSED';
@@ -97,7 +110,13 @@ export function MatchCardCompact({ match }: MatchCardCompactProps) {
       )}
     >
       {/* Home Team */}
-      <TeamDisplay team={homeTeam} isWinner={homeWins} isFinished={isFinished} isHome={true} />
+      <TeamDisplay
+        team={homeTeam}
+        isWinner={homeWins}
+        isFinished={isFinished}
+        isHome={true}
+        position={homePosition}
+      />
 
       {/* Score */}
       <div
@@ -128,7 +147,13 @@ export function MatchCardCompact({ match }: MatchCardCompactProps) {
       </div>
 
       {/* Away Team */}
-      <TeamDisplay team={awayTeam} isWinner={awayWins} isFinished={isFinished} isHome={false} />
+      <TeamDisplay
+        team={awayTeam}
+        isWinner={awayWins}
+        isFinished={isFinished}
+        isHome={false}
+        position={awayPosition}
+      />
 
       {/* Time & Status */}
       <div className="flex items-center gap-2 ml-auto flex-shrink-0">

@@ -14,6 +14,8 @@ interface MatchListProps {
   currentMatchday?: number | null;
   /** 表示密度: 'detailed'（従来のカード）または 'compact'（1行表示） */
   density?: ViewDensity;
+  /** チームID → 順位のマップ */
+  teamPositionMap?: Map<number, number>;
 }
 
 export function MatchList({
@@ -21,6 +23,7 @@ export function MatchList({
   groupBy = 'date',
   currentMatchday = null,
   density = 'detailed',
+  teamPositionMap,
 }: MatchListProps) {
   if (matches.length === 0) {
     return (
@@ -62,9 +65,28 @@ export function MatchList({
           <div className={gridClasses}>
             {liveMatches.map((match) =>
               isCompact ? (
-                <MatchCardCompact key={match.id} match={match} />
+                <MatchCardCompact
+                  key={match.id}
+                  match={match}
+                  homePosition={
+                    match.homeTeam.id ? teamPositionMap?.get(match.homeTeam.id) : undefined
+                  }
+                  awayPosition={
+                    match.awayTeam.id ? teamPositionMap?.get(match.awayTeam.id) : undefined
+                  }
+                />
               ) : (
-                <MatchCard key={match.id} match={match} showDateInHeader={false} />
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  showDateInHeader={false}
+                  homePosition={
+                    match.homeTeam.id ? teamPositionMap?.get(match.homeTeam.id) : undefined
+                  }
+                  awayPosition={
+                    match.awayTeam.id ? teamPositionMap?.get(match.awayTeam.id) : undefined
+                  }
+                />
               )
             )}
           </div>
@@ -78,9 +100,28 @@ export function MatchList({
           <div className={gridClasses}>
             {groupMatches.map((match) =>
               isCompact ? (
-                <MatchCardCompact key={match.id} match={match} />
+                <MatchCardCompact
+                  key={match.id}
+                  match={match}
+                  homePosition={
+                    match.homeTeam.id ? teamPositionMap?.get(match.homeTeam.id) : undefined
+                  }
+                  awayPosition={
+                    match.awayTeam.id ? teamPositionMap?.get(match.awayTeam.id) : undefined
+                  }
+                />
               ) : (
-                <MatchCard key={match.id} match={match} showDateInHeader={false} />
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  showDateInHeader={false}
+                  homePosition={
+                    match.homeTeam.id ? teamPositionMap?.get(match.homeTeam.id) : undefined
+                  }
+                  awayPosition={
+                    match.awayTeam.id ? teamPositionMap?.get(match.awayTeam.id) : undefined
+                  }
+                />
               )
             )}
           </div>

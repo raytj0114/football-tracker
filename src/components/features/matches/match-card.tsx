@@ -11,6 +11,10 @@ interface MatchCardProps {
   match: Match;
   /** グループヘッダーで日付を表示している場合はfalseにして時刻のみ表示 */
   showDateInHeader?: boolean;
+  /** ホームチームの順位 */
+  homePosition?: number;
+  /** アウェイチームの順位 */
+  awayPosition?: number;
 }
 
 function TeamRow({
@@ -19,12 +23,14 @@ function TeamRow({
   isWinner,
   isLive,
   isFinished,
+  position,
 }: {
   team: MatchTeam;
   scoreValue: number | null;
   isWinner: boolean;
   isLive: boolean;
   isFinished: boolean;
+  position?: number;
 }) {
   const teamName = team.shortName || team.name || 'TBD';
   const isTBD = team.id === null;
@@ -47,15 +53,20 @@ function TeamRow({
             </span>
           </div>
         )}
-        <span
-          className={cn(
-            'font-medium transition-colors',
-            !isTBD && 'group-hover:text-primary',
-            isTBD && 'text-muted-foreground'
+        <div className="flex items-center gap-2">
+          {position !== undefined && (
+            <span className="text-xs text-muted-foreground tabular-nums">{position}位</span>
           )}
-        >
-          {teamName}
-        </span>
+          <span
+            className={cn(
+              'font-medium transition-colors',
+              !isTBD && 'group-hover:text-primary',
+              isTBD && 'text-muted-foreground'
+            )}
+          >
+            {teamName}
+          </span>
+        </div>
       </div>
       <span
         className={cn(
@@ -80,7 +91,12 @@ function TeamRow({
   );
 }
 
-export function MatchCard({ match, showDateInHeader = true }: MatchCardProps) {
+export function MatchCard({
+  match,
+  showDateInHeader = true,
+  homePosition,
+  awayPosition,
+}: MatchCardProps) {
   const { homeTeam, awayTeam, score, status, utcDate } = match;
   const isFinished = status === 'FINISHED';
   const isLive = status === 'IN_PLAY' || status === 'PAUSED';
@@ -120,6 +136,7 @@ export function MatchCard({ match, showDateInHeader = true }: MatchCardProps) {
             isWinner={homeWins}
             isLive={isLive}
             isFinished={isFinished}
+            position={homePosition}
           />
           <TeamRow
             team={awayTeam}
@@ -127,6 +144,7 @@ export function MatchCard({ match, showDateInHeader = true }: MatchCardProps) {
             isWinner={awayWins}
             isLive={isLive}
             isFinished={isFinished}
+            position={awayPosition}
           />
         </div>
       </div>

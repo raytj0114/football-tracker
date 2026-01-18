@@ -2,18 +2,36 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { Standing } from '@/types/football-api';
 import { cn } from '@/lib/utils';
 import { POSITION_ZONES, type LeagueCode } from '@/lib/football-api/constants';
 import { TeamCommentPopover } from './team-comment-popover';
+import { NextMatchCell } from './next-match-cell';
+
+export interface NextMatchInfo {
+  matchId: number;
+  utcDate: string;
+  opponentId: number | null;
+  opponentName: string;
+  opponentCrest: string | null;
+  isHome: boolean;
+}
 
 interface StandingsTableProps {
   standings: Standing[];
   leagueCode?: LeagueCode;
   matchday?: number | null;
+  nextMatchMap?: Map<number, NextMatchInfo>;
 }
 
-export function StandingsTable({ standings, leagueCode = 'PL', matchday }: StandingsTableProps) {
+export function StandingsTable({
+  standings,
+  leagueCode = 'PL',
+  matchday,
+  nextMatchMap,
+}: StandingsTableProps) {
+  const router = useRouter();
   const zones = POSITION_ZONES[leagueCode];
 
   const getPositionClass = (position: number) => {
@@ -21,6 +39,10 @@ export function StandingsTable({ standings, leagueCode = 'PL', matchday }: Stand
     if (zones.europa.includes(position)) return 'table-row-europa';
     if (zones.relegation.includes(position)) return 'table-row-relegation';
     return '';
+  };
+
+  const handleRowClick = (teamId: number) => {
+    router.push(`/teams/${teamId}`);
   };
 
   return (
@@ -50,14 +72,20 @@ export function StandingsTable({ standings, leagueCode = 'PL', matchday }: Stand
               差
             </th>
             <th className="px-1 sm:px-3 py-2 sm:py-3 text-center w-10 sm:w-14 font-bold">点</th>
+            {nextMatchMap && (
+              <th className="px-1 sm:px-3 py-2 sm:py-3 text-center w-20 sm:w-24 hidden lg:table-cell">
+                次戦
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
           {standings.map((standing) => (
             <tr
               key={standing.team.id}
+              onClick={() => handleRowClick(standing.team.id)}
               className={cn(
-                'border-b border-border transition-colors hover:bg-muted/30',
+                'border-b border-border transition-colors hover:bg-muted/30 cursor-pointer',
                 getPositionClass(standing.position)
               )}
             >
@@ -84,6 +112,7 @@ export function StandingsTable({ standings, leagueCode = 'PL', matchday }: Stand
                 <div className="flex items-center gap-1 sm:gap-2">
                   <Link
                     href={`/teams/${standing.team.id}`}
+                    onClick={(e) => e.stopPropagation()}
                     className="flex items-center gap-2 sm:gap-3 group min-w-0 flex-1"
                   >
                     {standing.team.crest && (
@@ -99,34 +128,37 @@ export function StandingsTable({ standings, leagueCode = 'PL', matchday }: Stand
                       {standing.team.shortName || standing.team.name}
                     </span>
                   </Link>
-                  <TeamCommentPopover
-                    teamData={{
-                      teamId: standing.team.id,
-                      teamName: standing.team.name,
-                      position: standing.position,
-                      playedGames: standing.playedGames,
-                      won: standing.won,
-                      draw: standing.draw,
-                      lost: standing.lost,
-                      points: standing.points,
-                      goalDifference: standing.goalDifference,
-                      leagueCode,
-                      matchday: matchday ?? null,
-                      // リーグ文脈データ
-                      leaderPoints: standings[0]?.points ?? 0,
-                      pointsFromLeader: (standings[0]?.points ?? 0) - standing.points,
-                      // CLの場合は24位（プレーオフ圏境界）、他リーグは降格圏の勝ち点
-                      relegationPoints:
-                        leagueCode === 'CL'
-                          ? (standings[23]?.points ?? 0)
-                          : (standings[standings.length - 3]?.points ?? 0),
-                      pointsFromRelegation:
-                        leagueCode === 'CL'
-                          ? standing.points - (standings[23]?.points ?? 0)
-                          : standing.points - (standings[standings.length - 3]?.points ?? 0),
-                      totalTeams: standings.length,
-                    }}
-                  />
+                  {/* Stop propagation wrapper for AI button */}
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <TeamCommentPopover
+                      teamData={{
+                        teamId: standing.team.id,
+                        teamName: standing.team.name,
+                        position: standing.position,
+                        playedGames: standing.playedGames,
+                        won: standing.won,
+                        draw: standing.draw,
+                        lost: standing.lost,
+                        points: standing.points,
+                        goalDifference: standing.goalDifference,
+                        leagueCode,
+                        matchday: matchday ?? null,
+                        // リーグ文脈データ
+                        leaderPoints: standings[0]?.points ?? 0,
+                        pointsFromLeader: (standings[0]?.points ?? 0) - standing.points,
+                        // CLの場合は24位（プレーオフ圏境界）、他リーグは降格圏の勝ち点
+                        relegationPoints:
+                          leagueCode === 'CL'
+                            ? (standings[23]?.points ?? 0)
+                            : (standings[standings.length - 3]?.points ?? 0),
+                        pointsFromRelegation:
+                          leagueCode === 'CL'
+                            ? standing.points - (standings[23]?.points ?? 0)
+                            : standing.points - (standings[standings.length - 3]?.points ?? 0),
+                        totalTeams: standings.length,
+                      }}
+                    />
+                  </div>
                 </div>
               </td>
               <td className="px-1 sm:px-3 py-2 sm:py-3 text-center tabular-nums text-xs sm:text-sm">
@@ -162,6 +194,11 @@ export function StandingsTable({ standings, leagueCode = 'PL', matchday }: Stand
               <td className="px-1 sm:px-3 py-2 sm:py-3 text-center">
                 <span className="font-bold text-sm sm:text-lg">{standing.points}</span>
               </td>
+              {nextMatchMap && (
+                <td className="px-1 sm:px-3 py-2 sm:py-3 hidden lg:table-cell">
+                  <NextMatchCell nextMatch={nextMatchMap.get(standing.team.id)} />
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

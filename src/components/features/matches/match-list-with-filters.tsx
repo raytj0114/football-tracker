@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Calendar, List, LayoutGrid, Rows3 } from 'lucide-react';
 import type { Match } from '@/types/football-api';
 import { MatchList } from './match-list';
@@ -24,6 +24,7 @@ interface MatchListWithFiltersProps {
   favoriteTeamIds?: number[];
   currentMatchday?: number | null;
   leagueCode: string;
+  teamPositionMap?: Map<number, number>;
 }
 
 export function MatchListWithFilters({
@@ -31,9 +32,13 @@ export function MatchListWithFilters({
   favoriteTeamIds = [],
   currentMatchday = null,
   leagueCode,
+  teamPositionMap,
 }: MatchListWithFiltersProps) {
   // View mode
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+
+  // Ref for calendar match list section (for auto-scroll)
+  const calendarMatchListRef = useRef<HTMLDivElement>(null);
 
   // View density (compact/detailed)
   const { density, setDensity, isHydrated } = useViewDensity();
@@ -87,11 +92,25 @@ export function MatchListWithFilters({
     calendarFilterTeamIds
   );
 
+  // Auto-scroll to match list when date is selected in calendar view
+  useEffect(() => {
+    if (viewMode === 'calendar' && calendarFilters.selectedDate && calendarMatchListRef.current) {
+      // Small delay to ensure DOM is updated
+      const timer = setTimeout(() => {
+        calendarMatchListRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [viewMode, calendarFilters.selectedDate]);
+
   // If no matchdays exist (e.g., CL knockout stages), show all matches in list mode
   if (matchdays.length === 0) {
     return (
       <div className="space-y-6">
-        <MatchList matches={matches} />
+        <MatchList matches={matches} teamPositionMap={teamPositionMap} />
       </div>
     );
   }
@@ -172,7 +191,11 @@ export function MatchListWithFilters({
             </p>
           )}
 
-          <MatchList matches={filteredMatchesForList} density={density} />
+          <MatchList
+            matches={filteredMatchesForList}
+            density={density}
+            teamPositionMap={teamPositionMap}
+          />
         </>
       )}
 
@@ -191,12 +214,12 @@ export function MatchListWithFilters({
             onDateSelect={calendarFilters.setSelectedDate}
           />
 
-          <div className="space-y-2">
+          <div ref={calendarMatchListRef} className="space-y-2 scroll-mt-4">
             <h3 className="text-lg font-semibold">
               <FormattedDate date={calendarFilters.selectedDate} />
             </h3>
             {filteredMatchesForCalendar.length > 0 ? (
-              <MatchList matches={filteredMatchesForCalendar} />
+              <MatchList matches={filteredMatchesForCalendar} teamPositionMap={teamPositionMap} />
             ) : (
               <p className="text-muted-foreground text-sm py-8 text-center">
                 この日の試合はありません

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -24,6 +24,14 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
     { href: '/standings', label: '順位表', icon: Trophy },
     { href: '/favorites', label: 'お気に入り', icon: Heart },
   ];
+
+  // Determine the base path for league links based on current page
+  const leagueLinkBasePath = useMemo(() => {
+    if (pathname.startsWith('/standings')) {
+      return '/standings';
+    }
+    return '/matches';
+  }, [pathname]);
 
   const handleClose = useCallback(() => {
     setIsClosing(true);
@@ -103,7 +111,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
             {AVAILABLE_LEAGUES.map((league) => (
               <Link
                 key={league.code}
-                href={`/matches?league=${league.code}`}
+                href={`${leagueLinkBasePath}?league=${league.code}`}
                 className="sidebar-item"
                 onClick={handleClose}
               >

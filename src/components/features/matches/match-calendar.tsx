@@ -392,8 +392,13 @@ export function MatchCalendar({
       <div className="rounded-xl border border-border bg-card">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border p-4">
-          <Button variant="outline" size="icon" onClick={goToPrevMonth} className="h-8 w-8">
-            <ChevronLeft className="h-4 w-4" />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={goToPrevMonth}
+            className="h-10 w-10 sm:h-8 sm:w-8"
+          >
+            <ChevronLeft className="h-5 w-5 sm:h-4 sm:w-4" />
           </Button>
 
           <div className="flex items-center gap-3">
@@ -405,8 +410,13 @@ export function MatchCalendar({
             </Button>
           </div>
 
-          <Button variant="outline" size="icon" onClick={goToNextMonth} className="h-8 w-8">
-            <ChevronRight className="h-4 w-4" />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={goToNextMonth}
+            className="h-10 w-10 sm:h-8 sm:w-8"
+          >
+            <ChevronRight className="h-5 w-5 sm:h-4 sm:w-4" />
           </Button>
         </div>
 
