@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { Menu, Star } from 'lucide-react';
 import { useState } from 'react';
@@ -40,7 +41,9 @@ export function Header() {
           </div>
         </div>
       </header>
-      <MobileNav open={mobileNavOpen} onOpenChange={setMobileNavOpen} />
+      <Suspense fallback={null}>
+        <MobileNav open={mobileNavOpen} onOpenChange={setMobileNavOpen} />
+      </Suspense>
     </>
   );
 }
