@@ -118,39 +118,58 @@ export function getMatchStatusVariant(status: string): BadgeProps['variant'] {
   return MATCH_STATUS_VARIANTS[status as MatchStatus] ?? 'default';
 }
 
-// Position zones for standings table
+// Position zones for standings table (2025-26 season rules)
 export const POSITION_ZONES: Record<
   LeagueCode,
-  { champions: number[]; europa: number[]; relegation: number[] }
+  {
+    champions: number[];
+    europa: number[];
+    conferenceLeague: number[];
+    relegationPlayoff: number[];
+    relegation: number[];
+  }
 > = {
   PL: {
     champions: [1, 2, 3, 4],
-    europa: [5, 6],
+    europa: [5],
+    conferenceLeague: [6],
+    relegationPlayoff: [],
     relegation: [18, 19, 20],
   },
   BL1: {
     champions: [1, 2, 3, 4],
-    europa: [5, 6],
-    relegation: [16, 17, 18],
+    europa: [5],
+    conferenceLeague: [6],
+    relegationPlayoff: [16],
+    relegation: [17, 18],
   },
   SA: {
     champions: [1, 2, 3, 4],
-    europa: [5, 6],
+    europa: [5],
+    conferenceLeague: [6],
+    relegationPlayoff: [],
     relegation: [18, 19, 20],
   },
   PD: {
     champions: [1, 2, 3, 4],
     europa: [5, 6],
+    conferenceLeague: [7],
+    relegationPlayoff: [],
     relegation: [18, 19, 20],
   },
   FL1: {
     champions: [1, 2, 3],
-    europa: [4, 5],
-    relegation: [16, 17, 18],
+    europa: [4],
+    conferenceLeague: [5],
+    relegationPlayoff: [16],
+    relegation: [17, 18],
   },
   CL: {
-    champions: [],
-    europa: [],
-    relegation: [],
+    // CLの特殊ルール: 1-8位はR16直行、9-24位はプレーオフ進出、25-36位は敗退
+    champions: [1, 2, 3, 4, 5, 6, 7, 8],
+    europa: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+    conferenceLeague: [],
+    relegationPlayoff: [],
+    relegation: [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
   },
 };

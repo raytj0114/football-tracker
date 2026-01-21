@@ -37,6 +37,8 @@ export function StandingsTable({
   const getPositionClass = (position: number) => {
     if (zones.champions.includes(position)) return 'table-row-champions';
     if (zones.europa.includes(position)) return 'table-row-europa';
+    if (zones.conferenceLeague.includes(position)) return 'table-row-conference';
+    if (zones.relegationPlayoff.includes(position)) return 'table-row-relegation-playoff';
     if (zones.relegation.includes(position)) return 'table-row-relegation';
     return '';
   };
@@ -96,9 +98,14 @@ export function StandingsTable({
                       'h-3 sm:h-4 w-1 rounded-full flex-shrink-0',
                       zones.champions.includes(standing.position) && 'bg-champions',
                       zones.europa.includes(standing.position) && 'bg-europa',
+                      zones.conferenceLeague.includes(standing.position) && 'bg-conference',
+                      zones.relegationPlayoff.includes(standing.position) &&
+                        'bg-relegation-playoff',
                       zones.relegation.includes(standing.position) && 'bg-relegation',
                       !zones.champions.includes(standing.position) &&
                         !zones.europa.includes(standing.position) &&
+                        !zones.conferenceLeague.includes(standing.position) &&
+                        !zones.relegationPlayoff.includes(standing.position) &&
                         !zones.relegation.includes(standing.position) &&
                         'bg-transparent'
                     )}
@@ -209,19 +216,31 @@ export function StandingsTable({
         {zones.champions.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-champions" />
-            <span>Champions League</span>
+            <span>{leagueCode === 'CL' ? 'ラウンド16直行' : 'Champions League'}</span>
           </div>
         )}
         {zones.europa.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-europa" />
-            <span>Europa League</span>
+            <span>{leagueCode === 'CL' ? 'プレーオフ進出' : 'Europa League'}</span>
+          </div>
+        )}
+        {zones.conferenceLeague.length > 0 && (
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-conference" />
+            <span>Conference League</span>
+          </div>
+        )}
+        {zones.relegationPlayoff.length > 0 && (
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-relegation-playoff" />
+            <span>降格プレーオフ</span>
           </div>
         )}
         {zones.relegation.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-relegation" />
-            <span>降格</span>
+            <span>{leagueCode === 'CL' ? '敗退' : '降格'}</span>
           </div>
         )}
       </div>

@@ -70,6 +70,8 @@ const config: Config = {
         loss: 'hsl(var(--loss))',
         champions: 'hsl(var(--champions))',
         europa: 'hsl(var(--europa))',
+        conference: 'hsl(var(--conference))',
+        'relegation-playoff': 'hsl(var(--relegation-playoff))',
         relegation: 'hsl(var(--relegation))',
       },
       fontFamily: {

@@ -49,6 +49,8 @@
     --loss: 0 84% 60%;
     --champions: 217 91% 60%;
     --europa: 25 95% 53%;
+    --conference: 142 76% 36%;
+    --relegation-playoff: 45 93% 47%;
     --relegation: 0 84% 60%;
   }
 
@@ -93,6 +95,8 @@
     --loss: 0 84% 65%;
     --champions: 217 91% 65%;
     --europa: 25 95% 60%;
+    --conference: 142 76% 42%;
+    --relegation-playoff: 45 93% 55%;
     --relegation: 0 84% 65%;
   }
 }
@@ -170,6 +174,14 @@
 
   .table-row-europa {
     @apply bg-europa/10 dark:bg-europa/20;
+  }
+
+  .table-row-conference {
+    @apply bg-conference/10 dark:bg-conference/20;
+  }
+
+  .table-row-relegation-playoff {
+    @apply bg-relegation-playoff/10 dark:bg-relegation-playoff/20;
   }
 
   .table-row-relegation {
